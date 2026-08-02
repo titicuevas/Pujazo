@@ -197,4 +197,95 @@ Saldo
     expect(result.meta.balance).toBe(3_800_000);
     expect(result.players[0]?.name).toBe("Aitor Fernández");
   });
+
+  it("parsea plantilla estilo Comunio (POR/DEF/MED/DEL + club + valor)", () => {
+    const raw = `
+Mis jugadores
+Courtois
+POR
+Real Madrid
+12500000
+Carvajal
+DEF
+Real Madrid
+8.200.000
+Bellingham
+MED
+Real Madrid
+18.500.000
+Morata
+DEL
+Atlético
+9.100.000
+Dinero
+2.450.000
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.players).toHaveLength(4);
+    expect(result.players[0]).toMatchObject({
+      name: "Courtois",
+      position: "portero",
+      value: 12_500_000,
+    });
+    expect(result.players[1]).toMatchObject({
+      name: "Carvajal",
+      position: "defensa",
+      value: 8_200_000,
+    });
+    expect(result.players[2].position).toBe("centrocampista");
+    expect(result.players[3]).toMatchObject({
+      name: "Morata",
+      position: "delantero",
+      value: 9_100_000,
+    });
+    expect(result.meta.balance).toBe(2_450_000);
+  });
+
+  it("parsea fichas estilo LALIGA FANTASY con Valor y Cláusula", () => {
+    const raw = `
+Mi plantilla
+Unai Simón
+Portero
+Athletic Club
+Valor
+4.200.000 €
+Cláusula
+12.000.000 €
+Nico Williams
+Delantero
+Athletic Club
+Valor 15.800.000 €
+Cláusula: 40.000.000 €
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.players.map((p) => p.name)).toEqual([
+      "Unai Simón",
+      "Nico Williams",
+    ]);
+    expect(result.players[0]).toMatchObject({
+      position: "portero",
+      value: 4_200_000,
+      clausePrice: 12_000_000,
+    });
+    expect(result.players[1]).toMatchObject({
+      position: "delantero",
+      value: 15_800_000,
+      clausePrice: 40_000_000,
+    });
+  });
+
+  it("parsea filas tabuladas Comunio/LF", () => {
+    const raw = `
+Courtois\tPOR\t12.500.000
+Carvajal\tDEF\t8200000
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.players).toHaveLength(2);
+    expect(result.players[0]).toMatchObject({
+      name: "Courtois",
+      position: "portero",
+      value: 12_500_000,
+    });
+    expect(result.players[1].value).toBe(8_200_000);
+  });
 });

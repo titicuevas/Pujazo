@@ -13,7 +13,7 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Carga de **liga de ejemplo** con reglas reales de referencia
 - Carga de **datos de ejemplo** ficticios (plantilla 18, mercado, necesidad de vender)
 - **Importar pegando** plantilla y mercado desde tu fantasy (sin login ni scraping)
-- Guía móvil/PC para copiar desde Biwenger + botón de portapapeles
+- Guía móvil/PC para copiar desde Biwenger, Comunio o LALIGA FANTASY + botón de portapapeles
 - Presets de reglas por plataforma
 - Motor local de recomendaciones (`src/lib/analysis`)
 - Once, formación, capitán y ariete
@@ -134,8 +134,8 @@ src/
 
 ## Qué incluye la V2 (actual)
 
-- Importar plantilla y mercado pegando desde Biwenger (móvil y PC, con guía)
-- Detección de saldo al pegar
+- Importar plantilla y mercado pegando desde Biwenger, Comunio o LALIGA FANTASY (móvil y PC, con guía)
+- Detección de saldo/dinero al pegar
 - Presets de reglas por plataforma (Biwenger / Comunio / LALIGA FANTASY / genérico)
 - Resultado demo-ready (copiar / descargar / compartir)
 - React Doctor + QA (`pnpm qa` / `pnpm qa:full`)

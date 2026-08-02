@@ -7,38 +7,73 @@ import {
   type ParsedPastePlayer,
   type PasteMeta,
 } from "@/lib/importPaste";
+import type { PlatformId } from "@/lib/types";
 
 type PasteMode = "replace" | "append";
 type ImportKind = "squad" | "market";
 
-const COPY: Record<
-  ImportKind,
-  {
-    title: string;
-    where: string;
-    after: string;
-  }
+const GUIDE: Record<
+  PlatformId,
+  Record<ImportKind, { where: string; tip: string }>
 > = {
-  squad: {
-    title: "Pegar plantilla (recomendado)",
-    where: "En Biwenger: Equipo → pestaña Plantilla (la lista con valores y “Vender”).",
-    after:
-      "Revisa nombres, posiciones y valores. Completa a mano lo que falte antes de seguir.",
+  biwenger: {
+    squad: {
+      where:
+        "En Biwenger: Equipo → pestaña Plantilla (la lista con valores y “Vender”).",
+      tip: "Evita la pestaña de alineación: copia la lista de plantilla.",
+    },
+    market: {
+      where:
+        "En Biwenger: Mercado (jugadores en venta/puja). Evita “Todos los jugadores”.",
+      tip: "Si aparece cláusula, la usamos como precio mínimo.",
+    },
   },
-  market: {
-    title: "Pegar mercado (recomendado)",
-    where: "En Biwenger: Mercado (la cuadrícula de jugadores en venta/puja). Evita “Todos los jugadores”.",
-    after:
-      "Si aparece cláusula, la usamos como precio mínimo. Ajusta pujas después si hace falta.",
+  comunio: {
+    squad: {
+      where:
+        "En Comunio: abre tu equipo / plantilla (lista de jugadores con valor).",
+      tip: "Copia el listado completo; si salen clubes o puntos, Pujazo los ignora.",
+    },
+    market: {
+      where:
+        "En Comunio: mercado u ofertas con nombres, posición y valor.",
+      tip: "Revisa después las pujas: Comunio no siempre trae precio mínimo claro.",
+    },
+  },
+  laliga_fantasy: {
+    squad: {
+      where:
+        "En LALIGA FANTASY: tu plantilla (fichas con posición y valor/cláusula).",
+      tip: "Si el pegado trae “Valor” o “Cláusula”, los usamos automáticamente.",
+    },
+    market: {
+      where:
+        "En LALIGA FANTASY: mercado o jugadores en venta que quieras analizar.",
+      tip: "La cláusula, si aparece, se usa como referencia de precio mínimo.",
+    },
+  },
+  otro: {
+    squad: {
+      where:
+        "En tu fantasy: abre la plantilla con nombres, posiciones y valores.",
+      tip: "Cuanto más limpio sea el listado (nombre + posición + valor), mejor.",
+    },
+    market: {
+      where:
+        "En tu fantasy: copia el mercado o los candidatos que estés mirando.",
+      tip: "Puedes completar a mano lo que el pegado no detecte.",
+    },
   },
 };
 
 export function PasteImportPanel({
   kind,
+  platform = "biwenger",
   onImport,
   defaultOpen = false,
 }: {
   kind: ImportKind;
+  platform?: PlatformId;
   onImport: (
     players: ParsedPastePlayer[],
     mode: PasteMode,
@@ -46,7 +81,11 @@ export function PasteImportPanel({
   ) => void;
   defaultOpen?: boolean;
 }) {
-  const copy = COPY[kind];
+  const guide = GUIDE[platform]?.[kind] ?? GUIDE.otro[kind];
+  const title =
+    kind === "squad"
+      ? "Pegar plantilla (recomendado)"
+      : "Pegar mercado (recomendado)";
   const modeName = useId();
   const [open, setOpen] = useState(defaultOpen);
   const [text, setText] = useState("");
@@ -78,7 +117,7 @@ export function PasteImportPanel({
       const clip = await navigator.clipboard.readText();
       if (!clip.trim()) {
         setFeedback(
-          "El portapapeles está vacío. Primero copia en Biwenger y vuelve.",
+          "El portapapeles está vacío. Primero copia en tu fantasy y vuelve.",
         );
         return;
       }
@@ -101,7 +140,7 @@ export function PasteImportPanel({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        <span className="text-sm font-semibold text-ink">{copy.title}</span>
+        <span className="text-sm font-semibold text-ink">{title}</span>
         <span className="shrink-0 text-xs font-medium text-mist">
           {open ? "Ocultar guía" : "Ver cómo hacerlo"}
         </span>
@@ -114,7 +153,7 @@ export function PasteImportPanel({
               <span className="font-display w-5 shrink-0 font-bold text-lime">
                 1
               </span>
-              <span>{copy.where}</span>
+              <span>{guide.where}</span>
             </li>
             <li className="flex gap-2">
               <span className="font-display w-5 shrink-0 font-bold text-lime">
@@ -145,7 +184,8 @@ export function PasteImportPanel({
               </span>
               <span>
                 Elige sustituir o añadir, pulsa{" "}
-                <strong className="text-ink">Importar pegado</strong>. {copy.after}
+                <strong className="text-ink">Importar pegado</strong>.{" "}
+                {guide.tip} Completa a mano lo que falte antes de seguir.
               </span>
             </li>
           </ol>
@@ -186,7 +226,7 @@ export function PasteImportPanel({
             }
             rows={8}
             className="min-h-40 text-base sm:min-h-32 sm:text-sm"
-            aria-label={copy.title}
+            aria-label={title}
           />
 
           <fieldset className="flex flex-col gap-2 text-sm text-foam sm:flex-row sm:flex-wrap sm:gap-4">
@@ -223,9 +263,9 @@ export function PasteImportPanel({
           ) : null}
 
           <p className="text-xs leading-relaxed text-mist">
-            No hace falta captura de pantalla: el texto se lee mejor y funciona
-            en móvil, tablet y PC. Si el navegador bloquea el portapapeles,
-            pega con el menú del sistema dentro del cuadro.
+            Todo el pegado se interpreta en tu dispositivo: no se envía a ningún
+            servidor. Si el navegador bloquea el portapapeles, pega con el menú
+            del sistema dentro del cuadro.
           </p>
         </div>
       ) : null}

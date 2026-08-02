@@ -56,13 +56,17 @@ const POSITION_ALIASES: { position: Position; tokens: string[] }[] = [
 ];
 
 const NOISE_LINE =
-  /^(plantilla|noticias|mercado|jugadores|equipo|mi equipo|squad|team|valor|saldo|posición|posicion|nombre|total|clasificación|clasificacion|alineación|alineacion|estrategia|guardar alineación|guardar alineacion|suplentes|añadir|anadir|buscar|buscar jugador|vender|pujar|inicio|liga|jornada|evolución del mercado|evolucion del mercado|todos los jugadores|primera división|primera division|subidas|bajadas|más estadísticas|mas estadisticas|fecha|propietario|precio|chachos f\.?c\.?|biwenger)\b/i;
+  /^(plantilla|noticias|mercado|jugadores|equipo|mi equipo|mis jugadores|squad|team|saldo|dinero|presupuesto|cash|posición|posicion|nombre|total|clasificación|clasificacion|alineación|alineacion|estrategia|guardar alineación|guardar alineacion|suplentes|añadir|anadir|buscar|buscar jugador|vender|pujar|comprar|inicio|liga|jornada|evolución del mercado|evolucion del mercado|todos los jugadores|primera división|primera division|subidas|bajadas|más estadísticas|mas estadisticas|fecha|propietario|ofertas|comunio|biwenger|laliga|fantasy|mi plantilla|mi mercado|chachos f\.?c\.?)\b/i;
 
 const POSITION_ONLY = /^(PT|DF|MC|DL|POR|DEF|MED|DEL|GK)$/i;
 
+/** Clubes / ruido habitual entre nombre y valor en Comunio / LALIGA FANTASY */
+const CLUB_OR_UI_LINE =
+  /^(real madrid|fc barcelona|barcelona|barça|barca|atl[eé]tico(?: de madrid)?|athletic(?: club)?|sevilla|valencia|villarreal|real sociedad|betis|real betis|osasuna|celta(?: de vigo)?|mallorca|girona|getafe|alav[eé]s|deportivo alav[eé]s|las palmas|ud las palmas|rayo(?: vallecano)?|espanyol|legan[eé]s|valladolid|real valladolid|elche|c[aá]diz|granada|levante|almer[ií]a|huesca|eibar|mallorca|r\.? madrid|r\.? sociedad)\b/i;
+
 /**
- * Interpreta texto pegado desde Biwenger, Comunio u otra fantasy
- * (Ctrl+A / Ctrl+C). Prioriza el formato de tarjetas de Biwenger.
+ * Interpreta texto pegado desde Biwenger, Comunio, LALIGA FANTASY u otra
+ * (Ctrl+A / Ctrl+C). Prioriza tarjetas Biwenger y luego bloques Comunio/LF.
  */
 export function parsePastedPlayers(raw: string): PasteParseResult {
   const warnings: string[] = [];
@@ -84,6 +88,16 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
     return finalize(biwenger.players, biwenger.skippedLines, warnings, meta);
   }
 
+  const sequential = parseSequentialFantasy(text);
+  if (sequential && sequential.players.length > 0) {
+    return finalize(
+      sequential.players,
+      sequential.skippedLines,
+      warnings,
+      meta,
+    );
+  }
+
   const [players, skippedLines] = parseLineByLine(text);
   return finalize(players, skippedLines, warnings, meta);
 }
@@ -96,7 +110,7 @@ function finalize(
 ): PasteParseResult {
   if (players.length === 0) {
     warnings.push(
-      "No se detectaron jugadores. En Biwenger: Equipo → Plantilla (o Mercado), Ctrl+A, Ctrl+C y pega aquí.",
+      "No se detectaron jugadores. Copia la plantilla o el mercado en tu fantasy (Biwenger, Comunio o LALIGA FANTASY), pega aquí e inténtalo de nuevo.",
     );
   } else if (players.some((p) => p.value === undefined)) {
     warnings.push(
@@ -111,19 +125,19 @@ function finalize(
   return { players, skippedLines, warnings, meta };
 }
 
-/** Busca importes etiquetados como Saldo en pegados de Biwenger. */
+/** Busca saldo/dinero etiquetado en pegados (Biwenger, Comunio, etc.). */
 export function extractPasteMeta(raw: string): PasteMeta {
   const text = raw.replace(/\r\n/g, "\n");
+  const labels = "Saldo|Dinero|Presupuesto|Cash|Disponible";
   const patterns = [
-    /Saldo\s*\n\s*([^\n]+)/i,
-    /([^\n]+)\s*\n\s*Saldo\b/i,
+    new RegExp(`(?:${labels})\\s*\\n\\s*([^\\n]+)`, "i"),
+    new RegExp(`([^\\n]+)\\s*\\n\\s*(?:${labels})\\b`, "i"),
+    new RegExp(`(?:${labels})\\s*[:：]?\\s*([^\\n]+)`, "i"),
   ];
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (!match?.[1]) continue;
     const value = extractMoney(match[1].trim());
-    // Evitar “Valor de equipo” enorme confundido: saldo suele ser < 50M en ligas típicas
-    // pero permitimos hasta 100M; descartar si parece valor de plantilla (>80M) y hay otro candidato
     if (value !== undefined && value >= 10_000) {
       return { balance: value };
     }
@@ -131,17 +145,19 @@ export function extractPasteMeta(raw: string): PasteMeta {
   return {};
 }
 
-/** Quita alineación, catálogo global y ruido de UI de Biwenger. */
+/** Quita alineación, catálogo global y ruido de UI. */
 function trimToUsefulSection(text: string): string {
   let out = text;
 
-  const plantilla = out.search(/(?:^|\n)\s*Plantilla(?:Noticias)?\b/i);
+  const plantilla = out.search(
+    /(?:^|\n)\s*(Plantilla(?:Noticias)?|Mis jugadores|Mi plantilla)\b/i,
+  );
   if (plantilla >= 0) {
     out = out.slice(plantilla);
   }
 
   const cutCatalog = out.search(
-    /(?:^|\n)\s*(Evolución del mercado|Evolucion del mercado|Todos los jugadores)\b/i,
+    /(?:^|\n)\s*(Evolución del mercado|Evolucion del mercado|Todos los jugadores|Clasificación general|Clasificacion general)\b/i,
   );
   if (cutCatalog >= 0) {
     out = out.slice(0, cutCatalog);
@@ -214,6 +230,167 @@ function parseBiwengerCards(
     players.push(parsed);
   }
 
+  return { players, skippedLines };
+}
+
+/**
+ * Bloques estilo Comunio / LALIGA FANTASY:
+ * Nombre → posición (POR/DEF/MED/DEL o palabra) → club opcional → valor.
+ * También filas tabuladas: "Nombre\tPOR\t12.500.000".
+ */
+function parseSequentialFantasy(
+  text: string,
+): { players: ParsedPastePlayer[]; skippedLines: number } | null {
+  const hasComunioPos =
+    /(?:^|\n)\s*(POR|DEF|MED|DEL)\s*(?:\n|$)/m.test(text);
+  const hasLabel =
+    /(?:^|\n)\s*(Valor|Cláusula|Clausula)\b/im.test(text) ||
+    /(?:^|\n)\s*(Portero|Defensa|Centrocampista|Delantero)s?\s*(?:\n|$)/im.test(
+      text,
+    );
+  const hasMoney =
+    /€/.test(text) ||
+    /\d{1,3}(?:[.\s]\d{3})+/.test(text) ||
+    /\d{5,}/.test(text);
+  if ((!hasComunioPos && !hasLabel) || !hasMoney) return null;
+  // Biwenger con Vender/Pujar ya se resolvió antes; si llega aquí sin esas
+  // marcas, seguimos (Comunio casi nunca lleva “Vender” en el pegado).
+
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const players: ParsedPastePlayer[] = [];
+  const seen = new Set<string>();
+  let skippedLines = 0;
+  let current: ParsedPastePlayer | null = null;
+
+  const commit = () => {
+    if (!current?.name) {
+      current = null;
+      return;
+    }
+    const key = normalizeName(current.name);
+    if (seen.has(key)) {
+      skippedLines += 1;
+      current = null;
+      return;
+    }
+    seen.add(key);
+    players.push(current);
+    current = null;
+  };
+
+  for (const line of lines) {
+    // Etiquetas solas (sin importe); “Valor 4M €” se procesa más abajo
+    if (
+      /^(Valor|Cláusula|Clausula|Precio)\s*[:：]?\s*$/i.test(line) ||
+      ((NOISE_LINE.test(line) || line === "/" || line === "0") && !/\d/.test(line))
+    ) {
+      skippedLines += 1;
+      continue;
+    }
+    if (CLUB_OR_UI_LINE.test(line)) {
+      skippedLines += 1;
+      continue;
+    }
+
+    // Fila tabular: Nombre [tab|;] POS [tab|;] valor
+    if (/\t/.test(line) || (/;/.test(line) && /\d/.test(line))) {
+      const parts = line
+        .split(/\t|;/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      if (parts.length >= 2) {
+        commit();
+        const tabular = parseLine(parts.join(" "));
+        if (tabular) {
+          current = tabular;
+          commit();
+        } else {
+          skippedLines += 1;
+        }
+        continue;
+      }
+    }
+
+    if (isMoneyLine(line) || /^\d{5,9}$/.test(line)) {
+      const money = extractMoney(line);
+      if (money !== undefined && current) {
+        const isClause = /cl[aá]usula/i.test(line);
+        if (isClause) {
+          current.clausePrice = money;
+        } else if (current.value === undefined) {
+          current.value = money;
+        } else if (
+          current.clausePrice === undefined &&
+          money > current.value
+        ) {
+          current.clausePrice = money;
+        }
+      } else {
+        skippedLines += 1;
+      }
+      continue;
+    }
+
+    if (POSITION_ONLY.test(line)) {
+      const pos = mapPositionToken(line);
+      if (pos && current && !current.position) current.position = pos;
+      else if (pos && current?.position && current.position !== pos) {
+        current.extraPositions = [
+          ...new Set([...(current.extraPositions ?? []), pos]),
+        ];
+      } else skippedLines += 1;
+      continue;
+    }
+
+    // "Valor 4.200.000 €" / "Cláusula: 12M" en una sola línea
+    if (/^(Valor|Cláusula|Clausula)\b/i.test(line) && /\d/.test(line)) {
+      const money = extractMoney(line);
+      if (money !== undefined && current) {
+        if (/cl[aá]usula/i.test(line)) {
+          current.clausePrice = money;
+        } else if (current.value === undefined) {
+          current.value = money;
+        }
+      } else skippedLines += 1;
+      continue;
+    }
+
+    const fullWordPos = mapPositionToken(line);
+    if (
+      fullWordPos &&
+      /^(portero|defensa|centrocampista|delantero)s?$/i.test(line.trim())
+    ) {
+      if (current && !current.position) current.position = fullWordPos;
+      else skippedLines += 1;
+      continue;
+    }
+
+    const inline = parseLine(line);
+    if (
+      inline &&
+      (inline.position || inline.value) &&
+      inline.name.split(/\s+/).length <= 5
+    ) {
+      commit();
+      current = inline;
+      continue;
+    }
+
+    if (looksLikePlayerName(line)) {
+      commit();
+      current = { name: cleanName(line) };
+      continue;
+    }
+
+    skippedLines += 1;
+  }
+  commit();
+
+  if (players.length === 0) return null;
   return { players, skippedLines };
 }
 
@@ -322,12 +499,14 @@ function isMoneyLine(line: string): boolean {
   return (
     /€/.test(line) ||
     /^\d{1,3}(?:[.\s]\d{3})+(?:[.,]\d+)?$/.test(line.trim()) ||
-    /^\d+[.,]\d+\s*[mM]$/.test(line.trim())
+    /^\d+[.,]\d+\s*[mM]$/.test(line.trim()) ||
+    /^\d{5,9}$/.test(line.trim())
   );
 }
 
 function looksLikePlayerName(line: string): boolean {
   if (!line || NOISE_LINE.test(line) || POSITION_ONLY.test(line)) return false;
+  if (CLUB_OR_UI_LINE.test(line)) return false;
   if (isMoneyLine(line) || line === "/" || line === "0") return false;
   if (/finaliza\b/i.test(line)) return false;
   if (/^\d+$/.test(line)) return false;

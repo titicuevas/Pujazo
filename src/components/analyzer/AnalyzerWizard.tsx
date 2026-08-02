@@ -523,6 +523,7 @@ function StepSquad() {
   const watchedSquad = useWatch({ control, name: "squad" });
   const squad = useMemo(() => watchedSquad ?? [], [watchedSquad]);
   const maxPlayers = watch("maxPlayers");
+  const platform = watch("platform");
   const totalValue = useMemo(
     () => squad.reduce((acc, p) => acc + (Number(p.value) || 0), 0),
     [squad],
@@ -581,6 +582,7 @@ function StepSquad() {
 
       <PasteImportPanel
         kind="squad"
+        platform={platform}
         defaultOpen
         onImport={importSquadPlayers}
       />
@@ -776,6 +778,7 @@ function StepBudget() {
     name: "market",
   });
   const maxPlayers = watch("maxPlayers");
+  const platform = watch("platform");
   const watchedMarket = useWatch({ control, name: "market" });
   const market = useMemo(() => watchedMarket ?? [], [watchedMarket]);
 
@@ -870,6 +873,7 @@ function StepBudget() {
 
       <PasteImportPanel
         kind="market"
+        platform={platform}
         defaultOpen
         onImport={importMarketPlayers}
       />
