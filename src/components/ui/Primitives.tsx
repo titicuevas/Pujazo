@@ -1,5 +1,13 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
+const BUTTON_VARIANTS = {
+  primary: "cta-primary px-4 py-2.5 text-sm shadow-none",
+  secondary:
+    "bg-pitch-800 text-ink border border-[var(--line)] hover:bg-pitch-700",
+  ghost: "bg-transparent text-foam hover:text-ink hover:bg-pitch-800/60",
+  danger: "bg-coral/20 text-coral border border-coral/50 hover:bg-coral/30",
+} as const;
+
 export function Button({
   variant = "primary",
   className = "",
@@ -7,18 +15,9 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "danger";
 }) {
-  const variants = {
-    primary:
-      "cta-primary px-4 py-2.5 text-sm shadow-none",
-    secondary:
-      "bg-pitch-800 text-ink border border-[var(--line)] hover:bg-pitch-700",
-    ghost: "bg-transparent text-foam hover:text-ink hover:bg-pitch-800/60",
-    danger: "bg-coral/20 text-coral border border-coral/50 hover:bg-coral/30",
-  };
-
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${BUTTON_VARIANTS[variant]} ${className}`}
       {...props}
     />
   );
@@ -88,6 +87,14 @@ export function TextArea({
   );
 }
 
+const BADGE_TONES = {
+  neutral: "bg-pitch-800 text-foam border-[var(--line)]",
+  safe: "bg-safe/20 text-safe border-safe/40",
+  balanced: "bg-balanced/20 text-balanced border-balanced/40",
+  risky: "bg-risky/20 text-risky border-risky/40",
+  lime: "bg-lime/20 text-lime border-lime/40",
+} as const;
+
 export function Badge({
   children,
   tone = "neutral",
@@ -95,16 +102,9 @@ export function Badge({
   children: ReactNode;
   tone?: "neutral" | "safe" | "balanced" | "risky" | "lime";
 }) {
-  const tones = {
-    neutral: "bg-pitch-800 text-foam border-[var(--line)]",
-    safe: "bg-safe/20 text-safe border-safe/40",
-    balanced: "bg-balanced/20 text-balanced border-balanced/40",
-    risky: "bg-risky/20 text-risky border-risky/40",
-    lime: "bg-lime/20 text-lime border-lime/40",
-  };
   return (
     <span
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${tones[tone]}`}
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${BADGE_TONES[tone]}`}
     >
       {children}
     </span>

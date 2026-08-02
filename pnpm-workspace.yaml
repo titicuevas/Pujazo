@@ -1,3 +1,6 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+packages:
+  - "."
+
+# Retrasa paquetes recién publicados y evita degradar señales de confianza.
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade

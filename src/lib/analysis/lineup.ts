@@ -109,10 +109,14 @@ export function pickCaptain(
   rules: LeagueRules,
 ): SquadPlayer | undefined {
   if (!rules.captainEnabled) return undefined;
-  const outfield = lineup.starters
-    .filter((s) => s.position !== "portero")
-    .map((s) => s.player)
-    .filter((p) => p.status === "disponible" || p.status === "duda");
+  const outfield: SquadPlayer[] = [];
+  for (const slot of lineup.starters) {
+    if (slot.position === "portero") continue;
+    if (slot.player.status !== "disponible" && slot.player.status !== "duda") {
+      continue;
+    }
+    outfield.push(slot.player);
+  }
 
   if (outfield.length === 0) return undefined;
 
@@ -130,10 +134,17 @@ export function pickStriker(
   rules: LeagueRules,
 ): SquadPlayer | undefined {
   if (!rules.strikerEnabled) return undefined;
-  const forwards = lineup.starters
-    .filter((s) => s.position === "delantero")
-    .map((s) => s.player)
-    .filter((p) => p.status !== "lesionado" && p.status !== "sancionado");
+  const forwards: SquadPlayer[] = [];
+  for (const slot of lineup.starters) {
+    if (slot.position !== "delantero") continue;
+    if (
+      slot.player.status === "lesionado" ||
+      slot.player.status === "sancionado"
+    ) {
+      continue;
+    }
+    forwards.push(slot.player);
+  }
 
   if (forwards.length === 0) return undefined;
 

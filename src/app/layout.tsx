@@ -23,6 +23,20 @@ export const metadata: Metadata = {
   description:
     "Introduce tu equipo, tu saldo, tu mercado y las reglas de tu liga. Pujazo te devuelve un plan claro de fichajes, ventas, pujas y alineación.",
   applicationName: "Pujazo",
+  openGraph: {
+    title: "Pujazo — Tu próximo movimiento en fantasy",
+    description:
+      "Asistente independiente de fantasy fútbol: fichajes, pujas, ventas y alineación a partir de tus datos.",
+    locale: "es_ES",
+    type: "website",
+    siteName: "Pujazo",
+  },
+  twitter: {
+    card: "summary",
+    title: "Pujazo — Tu próximo movimiento en fantasy",
+    description:
+      "Plan de fichajes, pujas y alineación sin conectar cuentas ni inventar datos en vivo.",
+  },
 };
 
 export const viewport: Viewport = {

@@ -152,6 +152,7 @@ export const analysisFormSchema = z
     }
 
     const marketNames = data.market.map((p) => normalizeName(p.name));
+    const marketNameSet = new Set(marketNames);
     const marketDupes = findDuplicates(marketNames);
     for (const name of marketDupes) {
       ctx.addIssue({
@@ -161,7 +162,7 @@ export const analysisFormSchema = z
       });
     }
 
-    const overlap = squadNames.filter((n) => marketNames.includes(n));
+    const overlap = squadNames.filter((n) => marketNameSet.has(n));
     for (const name of [...new Set(overlap)]) {
       ctx.addIssue({
         code: "custom",

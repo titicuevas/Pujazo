@@ -72,6 +72,26 @@ const choiceClass = (selected: boolean) =>
       : "border-[var(--line)] hover:border-lime/40"
   }`;
 
+const STEP_FIELDS: (keyof AnalysisFormValues | `rules.${string}`)[][] = [
+  ["platform", "customPlatformName"],
+  ["leagueName", "participants", "currentPosition", "matchday", "strategy"],
+  ["squad"],
+  ["balance", "maxPlayers", "allowNegativeBalance", "market"],
+  ["rules"],
+  ["analysisType", "concreteDoubt"],
+];
+
+function scrollToPanelError() {
+  requestAnimationFrame(() => {
+    const panel = document.getElementById("analyzer-panel");
+    const target =
+      panel?.querySelector<HTMLElement>(
+        '[role="alert"], [aria-invalid="true"]',
+      ) ?? panel;
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
 export function AnalyzerWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -87,17 +107,6 @@ export function AnalyzerWizard() {
 
   const { handleSubmit, reset, setValue, trigger, getValues, control } =
     methods;
-
-  function scrollToPanelError() {
-    requestAnimationFrame(() => {
-      const panel = document.getElementById("analyzer-panel");
-      const target =
-        panel?.querySelector<HTMLElement>(
-          '[role="alert"], [aria-invalid="true"]',
-        ) ?? panel;
-      target?.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  }
 
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -131,17 +140,8 @@ export function AnalyzerWizard() {
     return () => window.clearTimeout(timer);
   }, [draftValues, ready, getValues]);
 
-  const stepFields: (keyof AnalysisFormValues | `rules.${string}`)[][] = [
-    ["platform", "customPlatformName"],
-    ["leagueName", "participants", "currentPosition", "matchday", "strategy"],
-    ["squad"],
-    ["balance", "maxPlayers", "allowNegativeBalance", "market"],
-    ["rules"],
-    ["analysisType", "concreteDoubt"],
-  ];
-
   async function nextStep() {
-    const fields = stepFields[step];
+    const fields = STEP_FIELDS[step];
     const ok = await trigger(fields as never);
     if (!ok) {
       setBanner("Revisa los campos marcados antes de seguir.");
@@ -162,7 +162,7 @@ export function AnalyzerWizard() {
       return;
     }
     for (let i = step; i < target; i++) {
-      const ok = await trigger(stepFields[i] as never);
+      const ok = await trigger(STEP_FIELDS[i] as never);
       if (!ok) {
         setStep(i);
         setBanner("Completa este paso antes de saltar adelante.");
@@ -228,8 +228,8 @@ export function AnalyzerWizard() {
       router.push("/resultado");
     },
     async () => {
-      for (let i = 0; i < stepFields.length; i++) {
-        const ok = await trigger(stepFields[i] as never);
+      for (let i = 0; i < STEP_FIELDS.length; i++) {
+        const ok = await trigger(STEP_FIELDS[i] as never);
         if (!ok) {
           setStep(i);
           setBanner("Hay campos que revisar en este paso.");

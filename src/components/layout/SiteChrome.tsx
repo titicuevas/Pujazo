@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export function SiteHeader({ compact = false }: { compact?: boolean }) {
+function SiteHeader({ compact = false }: { compact?: boolean }) {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[color:var(--panel-strong)] backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
@@ -34,7 +34,7 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function SiteFooter() {
+function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-[var(--line)] bg-pitch-950/90">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 px-4 py-7 text-sm text-foam sm:px-6 sm:py-8">

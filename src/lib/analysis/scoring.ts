@@ -215,14 +215,19 @@ export function pickSellCandidates(
   neededSlots: number,
 ): SquadPlayer[] {
   const sellable = squad
-    .filter((p) => !p.doNotSell)
-    .map((p) => ({
-      player: p,
-      rank:
-        (p.usualStarter ? -20 : 10) +
-        STATUS_PENALTY[p.status] +
-        (p.value / 1_000_000) * 0.5,
-    }))
+    .reduce<
+      { player: SquadPlayer; rank: number }[]
+    >((acc, p) => {
+      if (p.doNotSell) return acc;
+      acc.push({
+        player: p,
+        rank:
+          (p.usualStarter ? -20 : 10) +
+          STATUS_PENALTY[p.status] +
+          (p.value / 1_000_000) * 0.5,
+      });
+      return acc;
+    }, [])
     .sort((a, b) => b.rank - a.rank)
     .map((x) => x.player);
 

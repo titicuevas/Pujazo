@@ -34,7 +34,7 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js `^20.19.0` o `>=22.13.0` (recomendado 22 LTS)
 - pnpm 9+ (recomendado: la versión del `packageManager` del proyecto)
 
 ## Instalación
@@ -77,6 +77,12 @@ Ejecuta lint, typecheck, unitarias, e2e y build:
 
 ```bash
 pnpm qa
+```
+
+Auditoría React (React Doctor):
+
+```bash
+pnpm doctor
 ```
 
 ## Lint y typecheck
