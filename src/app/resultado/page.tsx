@@ -73,7 +73,7 @@ export default function ResultadoPage() {
   if (!result) {
     return (
       <PageShell compactHeader>
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
           <h1 className="font-display text-3xl font-bold text-ink">
             Sin análisis guardado
           </h1>
@@ -118,8 +118,8 @@ export default function ResultadoPage() {
 
   return (
     <PageShell compactHeader>
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+      <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3 sm:mb-5">
           <div>
             <h1 className="font-display text-3xl font-bold text-ink">
               Tu plan de acción
@@ -138,7 +138,7 @@ export default function ResultadoPage() {
           </p>
         ) : null}
 
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-4 flex flex-wrap gap-2 sm:mb-5">
           <Link
             href="/analizar"
             className="inline-flex items-center justify-center rounded-md border border-[var(--line)] bg-pitch-800 px-4 py-2.5 text-sm font-medium text-ink"

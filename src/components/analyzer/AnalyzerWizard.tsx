@@ -175,7 +175,7 @@ export function AnalyzerWizard() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={onSubmit} className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
+      <form onSubmit={onSubmit} className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-3xl font-bold text-ink">

@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta afinada para contraste WCAG AA sobre fondos oscuros */
-  --pitch-950: #06140f;
-  --pitch-900: #0b1f17;
-  --pitch-800: #123528;
-  --pitch-700: #1a4a38;
-  --lime: #c8f52a;
-  --lime-dim: #a8d400;
-  --on-lime: #06140f;
-  --amber: #ffc107;
-  --coral: #ff7a5c;
-  --foam: #eef8f2;
-  --mist: #c9ded3;
-  --ink: #f7fff9;
-  --panel: rgba(18, 53, 40, 0.82);
-  --panel-strong: rgba(11, 31, 23, 0.94);
-  --line: rgba(200, 245, 42, 0.28);
-  --safe: #4ae6a8;
-  --balanced: #ffc107;
-  --risky: #ff7a5c;
+  /* Contraste alto sobre fondos oscuros (texto principal casi blanco) */
+  --pitch-950: #050f0b;
+  --pitch-900: #0a1c14;
+  --pitch-800: #143528;
+  --pitch-700: #1c4a37;
+  --lime: #d4ff3f;
+  --lime-dim: #b8e600;
+  --on-lime: #04110c;
+  --amber: #ffcc33;
+  --coral: #ff8a6a;
+  --foam: #f3faf6;
+  --mist: #d7ebe0;
+  --ink: #ffffff;
+  --panel: rgba(16, 48, 36, 0.88);
+  --panel-strong: rgba(8, 24, 18, 0.96);
+  --line: rgba(212, 255, 63, 0.35);
+  --safe: #5cf0b4;
+  --balanced: #ffcc33;
+  --risky: #ff8a6a;
   --background: var(--pitch-950);
   --foreground: var(--ink);
   --font-display: var(--font-syne), "Avenir Next", "Segoe UI", sans-serif;
@@ -29,21 +29,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-pitch-950: #06140f;
-  --color-pitch-900: #0b1f17;
-  --color-pitch-800: #123528;
-  --color-pitch-700: #1a4a38;
-  --color-lime: #c8f52a;
-  --color-lime-dim: #a8d400;
-  --color-on-lime: #06140f;
-  --color-amber: #ffc107;
-  --color-coral: #ff7a5c;
-  --color-foam: #eef8f2;
-  --color-mist: #c9ded3;
-  --color-ink: #f7fff9;
-  --color-safe: #4ae6a8;
-  --color-balanced: #ffc107;
-  --color-risky: #ff7a5c;
+  --color-pitch-950: #050f0b;
+  --color-pitch-900: #0a1c14;
+  --color-pitch-800: #143528;
+  --color-pitch-700: #1c4a37;
+  --color-lime: #d4ff3f;
+  --color-lime-dim: #b8e600;
+  --color-on-lime: #04110c;
+  --color-amber: #ffcc33;
+  --color-coral: #ff8a6a;
+  --color-foam: #f3faf6;
+  --color-mist: #d7ebe0;
+  --color-ink: #ffffff;
+  --color-safe: #5cf0b4;
+  --color-balanced: #ffcc33;
+  --color-risky: #ff8a6a;
   --font-sans: var(--font-manrope), "Avenir Next", "Segoe UI", sans-serif;
   --font-display: var(--font-syne), "Avenir Next", "Segoe UI", sans-serif;
 }
@@ -62,9 +62,9 @@ body {
   color: var(--foreground);
   font-family: var(--font-manrope), "Avenir Next", "Segoe UI", sans-serif;
   background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(200, 245, 42, 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255, 193, 7, 0.1), transparent 50%),
-    linear-gradient(180deg, var(--pitch-900) 0%, var(--pitch-950) 45%, #040d0a 100%);
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(212, 255, 63, 0.14), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255, 204, 51, 0.1), transparent 50%),
+    linear-gradient(180deg, var(--pitch-900) 0%, var(--pitch-950) 50%, #030a07 100%);
   background-attachment: fixed;
 }
 
@@ -74,8 +74,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(200, 245, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 245, 42, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(212, 255, 63, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 255, 63, 0.04) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
   z-index: 0;
@@ -97,7 +97,7 @@ a {
 }
 
 ::selection {
-  background: rgba(200, 245, 42, 0.4);
+  background: rgba(212, 255, 63, 0.45);
   color: var(--on-lime);
 }
 
@@ -125,7 +125,7 @@ a {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -136,10 +136,10 @@ a {
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(200, 245, 42, 0.4);
+    box-shadow: 0 0 0 0 rgba(212, 255, 63, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(200, 245, 42, 0);
+    box-shadow: 0 0 0 8px rgba(212, 255, 63, 0);
   }
 }
 
@@ -153,15 +153,15 @@ a {
 }
 
 .animate-rise {
-  animation: rise-in 0.7s ease-out both;
+  animation: rise-in 0.55s ease-out both;
 }
 
 .animate-rise-delay-1 {
-  animation: rise-in 0.7s ease-out 0.12s both;
+  animation: rise-in 0.55s ease-out 0.1s both;
 }
 
 .animate-rise-delay-2 {
-  animation: rise-in 0.7s ease-out 0.24s both;
+  animation: rise-in 0.55s ease-out 0.18s both;
 }
 
 .animate-cta-glow {
@@ -171,9 +171,9 @@ a {
 .hero-sheen {
   background: linear-gradient(
     120deg,
-    rgba(200, 245, 42, 0.08),
+    rgba(212, 255, 63, 0.08),
     transparent 35%,
-    rgba(255, 193, 7, 0.08),
+    rgba(255, 204, 51, 0.08),
     transparent 70%
   );
   background-size: 200% 200%;
