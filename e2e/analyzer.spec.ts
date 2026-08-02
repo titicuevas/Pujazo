@@ -27,6 +27,9 @@ test.describe("Flujo del analizador", () => {
       page.getByRole("heading", { name: "Tu plan de acción" }),
     ).toBeVisible();
     await expect(
+      page.getByRole("button", { name: "Copiar plan" }),
+    ).toBeVisible();
+    await expect(
       page.getByText("Vender antes de fichar", { exact: true }),
     ).toBeVisible();
     await expect(
@@ -37,5 +40,6 @@ test.describe("Flujo del analizador", () => {
     ).toBeVisible();
     await expect(page.getByText(/Capitán:/)).toBeVisible();
     await expect(page.getByText(/Ariete:/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "En una frase" })).toBeVisible();
   });
 });

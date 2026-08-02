@@ -75,6 +75,16 @@ export default function HomePage() {
                 Cómo funciona
               </Link>
             </div>
+            <p className="mt-3 text-sm text-mist animate-rise-delay-1">
+              ¿Solo quieres ver un ejemplo? En el asistente pulsa{" "}
+              <Link
+                href="/analizar"
+                className="font-semibold text-lime underline-offset-2 hover:underline"
+              >
+                Probar con datos de ejemplo
+              </Link>
+              .
+            </p>
           </div>
 
           <div className="order-2">

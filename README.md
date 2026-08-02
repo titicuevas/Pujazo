@@ -79,10 +79,16 @@ Ejecuta lint, typecheck, unitarias, e2e y build:
 pnpm qa
 ```
 
-Auditoría React (React Doctor):
+Auditoría React (React Doctor; requiere Node 22 o ≥20.19):
 
 ```bash
 pnpm doctor
+```
+
+QA + React Doctor:
+
+```bash
+pnpm qa:full
 ```
 
 ## Lint y typecheck

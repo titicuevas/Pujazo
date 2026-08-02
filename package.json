@@ -13,8 +13,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "doctor": "react-doctor . --verbose --no-telemetry",
-    "qa": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build"
+    "doctor": "react-doctor . --verbose --no-telemetry --yes",
+    "qa": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
+    "qa:full": "pnpm qa && pnpm doctor"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
