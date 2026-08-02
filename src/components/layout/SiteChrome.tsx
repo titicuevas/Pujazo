@@ -45,6 +45,12 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
             </Link>
           )}
           <Link
+            href="/historial"
+            className="rounded-md px-2.5 py-2 text-sm font-medium text-foam transition hover:text-ink sm:px-3"
+          >
+            Historial
+          </Link>
+          <Link
             href="/analizar"
             className="cta-primary px-3 py-2 text-sm"
           >

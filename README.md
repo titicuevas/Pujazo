@@ -17,8 +17,8 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Presets de reglas por plataforma
 - Motor local de recomendaciones (`src/lib/analysis`)
 - Once, formación, capitán y ariete
-- Persistencia temporal en `localStorage` (borrador, último análisis, reglas)
-- Copiar, descargar y compartir el resultado
+- Persistencia temporal en `localStorage` (borrador, último análisis, reglas, **historial**)
+- Copiar, descargar, **PDF/imprimir** y compartir el resultado
 - Validaciones en español con Zod + React Hook Form
 - Pruebas unitarias con Vitest
 - Pruebas e2e con Playwright (desktop + móvil)
@@ -112,14 +112,14 @@ pnpm start
 
 ```text
 src/
-  app/                  # Rutas App Router (home, analizar, resultado)
+  app/                  # Rutas App Router (home, analizar, resultado, historial)
   components/           # UI del asistente y cromado del sitio
   lib/
     analysis/           # Motor determinista (scoring, alineación, motor)
     constants.ts        # Catálogos y reglas de ejemplo
     demo.ts             # Datos ficticios de demostración
     schemas.ts          # Validaciones Zod
-    storage.ts          # localStorage
+    storage.ts          # localStorage (borrador, último plan, historial)
     export.ts           # Copiar / descargar / compartir
 ```
 
@@ -144,7 +144,8 @@ src/
 ## En curso · V3
 
 - Comparativa avanzada de candidatos (ranking en resultado) ✅
-- Exportación PDF / historial multi-dispositivo
+- Historial local de planes (hasta 15 en el dispositivo) ✅
+- Guardar PDF / imprimir el plan ✅
 - Conectores opcionales (extensión del navegador con consentimiento explícito)
 - Posible capa de IA opcional y transparente (nunca opaca)
 

@@ -243,3 +243,31 @@ a:not([class]) {
     animation: none !important;
   }
 }
+
+/* PDF / impresión: plan legible en blanco */
+@media print {
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body::before {
+    display: none !important;
+  }
+
+  header,
+  footer,
+  .skip-link,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

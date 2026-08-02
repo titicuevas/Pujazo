@@ -44,6 +44,9 @@ export function ResultEmptyState() {
         <Link href="/analizar" className="cta-primary px-4 py-2.5 text-sm">
           Analizar mi equipo
         </Link>
+        <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+          Ver historial
+        </Link>
         <Link href="/" className="cta-secondary px-4 py-2.5 text-sm">
           Volver al inicio
         </Link>
@@ -84,7 +87,14 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8 print:max-w-none print:px-0 print:py-0">
+      <div className="mb-4 hidden print:block">
+        <p className="font-display text-2xl font-extrabold text-black">Pujazo</p>
+        <p className="text-sm text-neutral-600">
+          Plan de acción · {formatGeneratedAt(result.generatedAt)}
+        </p>
+      </div>
+
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3 sm:mb-5">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-mist">
@@ -117,9 +127,21 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         </div>
       ) : null}
 
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="mb-5 flex flex-wrap gap-2 print:hidden">
         <Button type="button" onClick={onCopy}>
           Copiar plan
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            window.print();
+            setStatus(
+              "Si eliges «Guardar como PDF» en el diálogo de impresión, tendrás el plan fuera del navegador.",
+            );
+          }}
+        >
+          Guardar PDF / Imprimir
         </Button>
         <Button type="button" variant="secondary" onClick={onDownload}>
           Descargar .txt
@@ -127,6 +149,9 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         <Button type="button" variant="ghost" onClick={onShare}>
           Compartir
         </Button>
+        <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+          Historial
+        </Link>
         <Link href="/analizar" className="cta-secondary px-4 py-2.5 text-sm">
           Editar datos
         </Link>
@@ -192,9 +217,12 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
 
         <WarningsPanel result={result} />
 
-        <div className="flex flex-wrap gap-2 border-t border-[var(--line)] pt-5">
+        <div className="flex flex-wrap gap-2 border-t border-[var(--line)] pt-5 print:hidden">
           <Link href="/analizar" className="cta-primary px-4 py-2.5 text-sm">
             Ajustar y volver a analizar
+          </Link>
+          <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+            Ver historial
           </Link>
           <Link href="/" className="cta-secondary px-4 py-2.5 text-sm">
             Volver al inicio

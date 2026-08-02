@@ -67,6 +67,33 @@ test.describe("Flujo del analizador", () => {
     await expect(page.getByText(/Capitán:/)).toBeVisible();
     await expect(page.getByText(/Ariete:/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "En una frase" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Guardar PDF / Imprimir" }),
+    ).toBeVisible();
+  });
+
+  test("guarda en historial y permite reabrir el plan", async ({ page }) => {
+    await page.goto("/analizar");
+    await page.getByRole("button", { name: "Probar con datos de ejemplo" }).click();
+    await page
+      .getByRole("navigation", { name: "Progreso del formulario" })
+      .getByRole("button", { name: /6/ })
+      .click();
+    await page.getByRole("button", { name: "Generar plan" }).click();
+    await page.waitForURL("**/resultado");
+
+    await page.getByRole("link", { name: "Historial" }).first().click();
+    await page.waitForURL("**/historial");
+    await expect(
+      page.getByRole("heading", { name: "Historial de planes" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Abrir" }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Abrir" }).first().click();
+    await page.waitForURL("**/resultado");
+    await expect(
+      page.getByRole("heading", { name: "Tu plan de acción" }),
+    ).toBeVisible();
   });
 
   test("modo comparar muestra tabla de candidatos", async ({ page }) => {
