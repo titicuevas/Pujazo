@@ -16,14 +16,14 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
           {!compact && (
             <Link
               href="/#como-funciona"
-              className="hidden rounded-md px-3 py-2 text-sm text-mist transition hover:text-ink sm:inline-flex"
+              className="hidden rounded-md px-3 py-2 text-sm text-foam transition hover:text-ink sm:inline-flex"
             >
               Cómo funciona
             </Link>
           )}
           <Link
             href="/analizar"
-            className="inline-flex items-center rounded-md bg-lime px-3 py-2 text-sm font-semibold text-pitch-950 transition hover:bg-lime-dim"
+            className="inline-flex items-center rounded-md bg-lime px-3 py-2 text-sm font-semibold text-on-lime transition hover:bg-lime-dim"
           >
             Analizar mi equipo
           </Link>
@@ -36,13 +36,13 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-[var(--line)] bg-pitch-950/80">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-mist sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-foam sm:px-6">
         <p className="font-display text-lg font-bold text-lime">Pujazo</p>
         <p>
           Asistente independiente para fantasy fútbol en España. Sin conexión a
           cuentas, sin automatización de fichajes y sin datos en tiempo real.
         </p>
-        <p className="text-xs leading-relaxed text-mist/80">
+        <p className="text-xs leading-relaxed text-mist">
           Pujazo es una herramienta independiente y no está afiliada ni
           respaldada por Biwenger, Comunio, LALIGA FANTASY ni otras plataformas
           mencionadas.
@@ -62,7 +62,9 @@ export function PageShell({
   return (
     <>
       <SiteHeader compact={compactHeader} />
-      <main className="flex-1">{children}</main>
+      <main id="contenido-principal" className="flex-1">
+        {children}
+      </main>
       <SiteFooter />
     </>
   );

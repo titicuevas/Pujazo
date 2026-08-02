@@ -9,11 +9,11 @@ export function Button({
 }) {
   const variants = {
     primary:
-      "bg-lime text-pitch-950 hover:bg-lime-dim font-semibold shadow-[0_0_0_1px_rgba(184,242,0,0.3)]",
+      "bg-lime text-on-lime hover:bg-lime-dim font-semibold shadow-[0_0_0_1px_rgba(200,245,42,0.35)]",
     secondary:
       "bg-pitch-800 text-ink border border-[var(--line)] hover:bg-pitch-700",
-    ghost: "bg-transparent text-mist hover:text-ink hover:bg-pitch-800/60",
-    danger: "bg-coral/15 text-coral border border-coral/40 hover:bg-coral/25",
+    ghost: "bg-transparent text-foam hover:text-ink hover:bg-pitch-800/60",
+    danger: "bg-coral/20 text-coral border border-coral/50 hover:bg-coral/30",
   };
 
   return (
@@ -96,11 +96,11 @@ export function Badge({
   tone?: "neutral" | "safe" | "balanced" | "risky" | "lime";
 }) {
   const tones = {
-    neutral: "bg-pitch-800 text-mist border-[var(--line)]",
-    safe: "bg-safe/15 text-safe border-safe/30",
-    balanced: "bg-balanced/15 text-balanced border-balanced/30",
-    risky: "bg-risky/15 text-risky border-risky/30",
-    lime: "bg-lime/15 text-lime border-lime/30",
+    neutral: "bg-pitch-800 text-foam border-[var(--line)]",
+    safe: "bg-safe/20 text-safe border-safe/40",
+    balanced: "bg-balanced/20 text-balanced border-balanced/40",
+    risky: "bg-risky/20 text-risky border-risky/40",
+    lime: "bg-lime/20 text-lime border-lime/40",
   };
   return (
     <span

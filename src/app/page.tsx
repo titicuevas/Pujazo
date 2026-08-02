@@ -55,7 +55,7 @@ export default function HomePage() {
             <h1 className="font-display max-w-xl text-3xl font-bold leading-tight text-ink sm:text-4xl md:text-5xl">
               Tu plantilla. Tu mercado. Tu próximo movimiento.
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-mist sm:text-lg">
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-foam sm:text-lg">
               Introduce tu equipo, tu saldo, tu mercado y las reglas de tu liga.
               Pujazo te devuelve un plan claro de fichajes, ventas, pujas y
               alineación — sin conectar cuentas ni inventar datos en vivo.
@@ -63,7 +63,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3 animate-rise-delay-1">
               <Link
                 href="/analizar"
-                className="animate-cta-glow inline-flex items-center justify-center rounded-md bg-lime px-5 py-3 text-base font-semibold text-pitch-950 transition hover:bg-lime-dim"
+                className="animate-cta-glow inline-flex items-center justify-center rounded-md bg-lime px-5 py-3 text-base font-semibold text-on-lime transition hover:bg-lime-dim"
               >
                 Analizar mi equipo
               </Link>
@@ -101,7 +101,7 @@ export default function HomePage() {
         >
           Ventajas
         </h2>
-        <p className="mt-3 max-w-2xl text-mist">
+        <p className="mt-3 max-w-2xl text-foam">
           Un asistente pensado para decidir rápido en el mercado, no para
           sustituir tu criterio.
         </p>
@@ -111,7 +111,7 @@ export default function HomePage() {
               <h3 className="font-display text-xl font-semibold text-lime">
                 {item.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-mist">{item.text}</p>
+              <p className="mt-2 text-sm leading-relaxed text-foam">{item.text}</p>
             </li>
           ))}
         </ul>
@@ -138,7 +138,7 @@ export default function HomePage() {
                 <h3 className="font-display text-xl font-semibold text-ink">
                   {step.title}
                 </h3>
-                <p className="text-sm text-mist">{step.text}</p>
+                <p className="text-sm text-foam">{step.text}</p>
               </li>
             ))}
           </ol>

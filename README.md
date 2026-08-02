@@ -18,6 +18,8 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Copiar, descargar y compartir el resultado
 - Validaciones en español con Zod + React Hook Form
 - Pruebas unitarias con Vitest
+- Pruebas e2e con Playwright (desktop + móvil)
+- Contraste y accesibilidad básica (skip link, focus, reduced motion)
 
 ## Stack
 
@@ -26,6 +28,7 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Tailwind CSS
 - React Hook Form + Zod
 - Vitest
+- Playwright
 - ESLint
 - pnpm
 
@@ -50,6 +53,8 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ## Pruebas
 
+Unitarias:
+
 ```bash
 pnpm test
 ```
@@ -58,6 +63,20 @@ Modo watch:
 
 ```bash
 pnpm test:watch
+```
+
+End-to-end (Playwright):
+
+```bash
+pnpm test:e2e
+```
+
+## QA completo
+
+Ejecuta lint, typecheck, unitarias, e2e y build:
+
+```bash
+pnpm qa
 ```
 
 ## Lint y typecheck

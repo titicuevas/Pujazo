@@ -83,7 +83,7 @@ export default function ResultadoPage() {
           </p>
           <Link
             href="/analizar"
-            className="mt-6 inline-flex rounded-md bg-lime px-4 py-2.5 text-sm font-semibold text-pitch-950"
+            className="mt-6 inline-flex rounded-md bg-lime px-4 py-2.5 text-sm font-semibold text-on-lime"
           >
             Analizar mi equipo
           </Link>
