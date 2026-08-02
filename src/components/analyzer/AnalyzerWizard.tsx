@@ -26,8 +26,13 @@ import {
   createEmptySquadPlayer,
 } from "@/lib/demo";
 import { formatMoney } from "@/lib/format";
-import { analysisFormSchema, type AnalysisFormValues } from "@/lib/schemas";
+import {
+  analysisFormSchema,
+  normalizeName,
+  type AnalysisFormValues,
+} from "@/lib/schemas";
 import { countByPosition } from "@/lib/analysis";
+import type { ParsedPastePlayer } from "@/lib/importPaste";
 import {
   clearAllLocalData,
   loadCustomRules,
@@ -46,6 +51,7 @@ import {
   TextInput,
   TextSelect,
 } from "@/components/ui/Primitives";
+import { PasteImportPanel } from "@/components/analyzer/PasteImportPanel";
 
 const STEPS = [
   "Plataforma",
@@ -509,7 +515,10 @@ function StepSquad() {
     watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
-  const { fields, append, remove } = useFieldArray({ control, name: "squad" });
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "squad",
+  });
   const watchedSquad = useWatch({ control, name: "squad" });
   const squad = useMemo(() => watchedSquad ?? [], [watchedSquad]);
   const maxPlayers = watch("maxPlayers");
@@ -519,6 +528,28 @@ function StepSquad() {
   );
   const distribution = countByPosition(squad);
 
+  function importSquadPlayers(
+    players: ParsedPastePlayer[],
+    mode: "replace" | "append",
+  ) {
+    const mapped = players.map((p) => ({
+      ...createEmptySquadPlayer(),
+      name: p.name,
+      position: p.position ?? "centrocampista",
+      value: p.value ?? 0,
+    }));
+    if (mode === "replace") {
+      replace(mapped);
+      return;
+    }
+    const existing = new Set(squad.map((p) => normalizeName(p.name)));
+    for (const player of mapped) {
+      if (existing.has(normalizeName(player.name))) continue;
+      append(player);
+      existing.add(normalizeName(player.name));
+    }
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -527,7 +558,8 @@ function StepSquad() {
             Plantilla
           </h2>
           <p className="text-sm text-mist">
-            Añade tu equipo jugador a jugador. Los nombres deben ser únicos.
+            Añade tu equipo a mano o pégalo desde tu fantasy. Los nombres deben
+            ser únicos.
           </p>
         </div>
         <Button
@@ -538,6 +570,12 @@ function StepSquad() {
           Añadir jugador
         </Button>
       </div>
+
+      <PasteImportPanel
+        title="Pegar plantilla desde tu fantasy"
+        hint="En Biwenger, Comunio u otra plataforma: abre tu equipo, copia el texto (Ctrl+A / Ctrl+C) y pégalo aquí. Detectamos nombres y, si aparecen, posición y valor."
+        onImport={importSquadPlayers}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <ProgressBar
@@ -573,8 +611,8 @@ function StepSquad() {
         <div className="rounded-lg border border-dashed border-[var(--line)] bg-pitch-950/40 px-4 py-8 text-center">
           <p className="font-semibold text-ink">Tu plantilla está vacía</p>
           <p className="mt-1 text-sm text-mist">
-            Añade al menos un jugador, o carga datos de ejemplo desde arriba
-            para probar el flujo completo.
+            Pega tu equipo arriba, añade jugadores a mano, o carga datos de
+            ejemplo desde la cabecera.
           </p>
           <Button
             type="button"
@@ -725,8 +763,35 @@ function StepBudget() {
     watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
-  const { fields, append, remove } = useFieldArray({ control, name: "market" });
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "market",
+  });
   const maxPlayers = watch("maxPlayers");
+  const watchedMarket = useWatch({ control, name: "market" });
+  const market = useMemo(() => watchedMarket ?? [], [watchedMarket]);
+
+  function importMarketPlayers(
+    players: ParsedPastePlayer[],
+    mode: "replace" | "append",
+  ) {
+    const mapped = players.map((p) => ({
+      ...createEmptyMarketPlayer(),
+      name: p.name,
+      position: p.position ?? "centrocampista",
+      marketValue: p.value ?? 0,
+    }));
+    if (mode === "replace") {
+      replace(mapped);
+      return;
+    }
+    const existing = new Set(market.map((p) => normalizeName(p.name)));
+    for (const player of mapped) {
+      if (existing.has(normalizeName(player.name))) continue;
+      append(player);
+      existing.add(normalizeName(player.name));
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -789,6 +854,13 @@ function StepBudget() {
           Añadir al mercado
         </Button>
       </div>
+
+      <PasteImportPanel
+        title="Pegar mercado desde tu fantasy"
+        hint="Copia la lista de jugadores del mercado (o candidatos que estés mirando) y pégala aquí. Luego revisa valores y pujas."
+        onImport={importMarketPlayers}
+      />
+
       {errors.market?.message || errors.market?.root?.message ? (
         <p role="alert" className="text-sm text-coral">
           {String(errors.market?.message || errors.market?.root?.message)}
@@ -797,8 +869,8 @@ function StepBudget() {
 
       {fields.length === 0 ? (
         <p className="rounded-md border border-dashed border-[var(--line)] bg-pitch-950/30 px-3 py-4 text-sm text-mist">
-          Sin candidatos todavía. Añade jugadores que estés mirando para
-          recibir pujas y fichajes prioritarios.
+          Sin candidatos todavía. Pega el mercado arriba o añade jugadores que
+          estés mirando para recibir pujas y fichajes prioritarios.
         </p>
       ) : null}
 

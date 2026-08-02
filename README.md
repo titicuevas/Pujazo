@@ -12,6 +12,7 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Asistente multi-paso: plataforma, liga, plantilla, presupuesto/mercado, reglas y tipo de análisis
 - Carga de **liga de ejemplo** con reglas reales de referencia
 - Carga de **datos de ejemplo** ficticios (plantilla 18, mercado, necesidad de vender)
+- **Importar pegando** plantilla y mercado desde tu fantasy (sin login ni scraping)
 - Motor local de recomendaciones (`src/lib/analysis`)
 - Once, formación, capitán y ariete
 - Persistencia temporal en `localStorage` (borrador, último análisis, reglas)
@@ -131,7 +132,7 @@ src/
 
 ## Pasos futuros
 
-- Conectores opcionales (con consentimiento explícito)
+- Conectores opcionales (extensión del navegador con consentimiento explícito)
 - Mejoras de UX móvil y plantillas de reglas por plataforma
 - Exportación PDF / historial multi-dispositivo
 - Modo comparación avanzada entre candidatos
