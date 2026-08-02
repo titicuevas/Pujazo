@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Pujazo">
+  <rect width="180" height="180" rx="40" fill="#0a1c14"/>
+  <path
+    fill="#9fd400"
+    d="M42 138V42h42c20.5 0 34 12.2 34 30.2 0 18.4-13.5 30.8-34 30.8H64V138H42zm22-54h19c9.5 0 15-5.2 15-13.2S92.5 58 83 58H64v26z"
+  />
+  <path
+    fill="#eef8b8"
+    d="M124 128.5 148 88l-12.5-.3V58h-13v29.7L110 88l14 40.5z"
+  />
+</svg>

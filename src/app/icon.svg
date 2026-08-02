@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Pujazo">
+  <rect width="32" height="32" rx="8" fill="#0a1c14"/>
+  <!-- Marca: P + flecha de puja al alza -->
+  <path
+    fill="#9fd400"
+    d="M8.5 24V8.2h7.1c3.35 0 5.55 1.95 5.55 4.85 0 2.95-2.2 4.9-5.55 4.9H12.2V24H8.5zm3.7-9.55h3.2c1.55 0 2.45-.85 2.45-2.15s-.9-2.1-2.45-2.1h-3.2v4.25z"
+  />
+  <path
+    fill="#eef8b8"
+    d="M22.2 22.8 26.4 16l-2.15-.05V11.2h-2.1v4.75L20 16l2.2 6.8z"
+  />
+</svg>
