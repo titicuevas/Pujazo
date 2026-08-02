@@ -6,8 +6,8 @@
   --pitch-900: #0a1c14;
   --pitch-800: #143528;
   --pitch-700: #1c4a37;
-  --lime: #d4ff3f;
-  --lime-dim: #b8e600;
+  --lime: #b6f000;
+  --lime-dim: #9ad400;
   --on-lime: #04110c;
   --amber: #ffcc33;
   --coral: #ff8a6a;
@@ -33,9 +33,10 @@
   --color-pitch-900: #0a1c14;
   --color-pitch-800: #143528;
   --color-pitch-700: #1c4a37;
-  --color-lime: #d4ff3f;
-  --color-lime-dim: #b8e600;
+  --color-lime: #b6f000;
+  --color-lime-dim: #9ad400;
   --color-on-lime: #04110c;
+  --color-cta-ink: #04110c;
   --color-amber: #ffcc33;
   --color-coral: #ff8a6a;
   --color-foam: #f3faf6;

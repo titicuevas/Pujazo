@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageShell } from "@/components/layout/SiteChrome";
+import { HeroPreview } from "@/components/home/HeroPreview";
 import { INDEPENDENCE_NOTICE } from "@/lib/constants";
 
 const advantages = [
@@ -43,11 +44,15 @@ const steps = [
   },
 ];
 
+/** Texto oscuro explícito sobre botones lima (Tailwind a veces no genera text-on-lime). */
+const ctaClass =
+  "inline-flex items-center justify-center rounded-md bg-lime px-5 py-3 text-base font-semibold text-[#04110c] transition hover:bg-lime-dim";
+
 export default function HomePage() {
   return (
     <PageShell>
       <section className="relative overflow-hidden hero-sheen">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-10 md:py-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12 lg:py-14">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-10 md:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:py-14">
           <div className="animate-rise order-1">
             <p className="font-display mb-2 text-4xl font-extrabold tracking-tight text-lime sm:mb-3 sm:text-5xl md:text-6xl">
               Pujazo
@@ -61,35 +66,20 @@ export default function HomePage() {
               alineación — sin conectar cuentas ni inventar datos en vivo.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap animate-rise-delay-1">
-              <Link
-                href="/analizar"
-                className="animate-cta-glow inline-flex items-center justify-center rounded-md bg-lime px-5 py-3 text-base font-semibold text-on-lime transition hover:bg-lime-dim"
-              >
+              <Link href="/analizar" className={`animate-cta-glow ${ctaClass}`}>
                 Analizar mi equipo
               </Link>
               <Link
                 href="/#como-funciona"
-                className="inline-flex items-center justify-center rounded-md border-2 border-mist/50 bg-pitch-800/70 px-5 py-3 text-base font-medium text-ink transition hover:border-lime/60 hover:bg-pitch-700"
+                className="inline-flex items-center justify-center rounded-md border-2 border-mist/60 bg-pitch-800/80 px-5 py-3 text-base font-medium text-ink transition hover:border-lime/70 hover:bg-pitch-700"
               >
                 Cómo funciona
               </Link>
             </div>
           </div>
 
-          <div
-            className="relative order-2 min-h-44 animate-rise-delay-2 overflow-hidden rounded-xl border border-[var(--line)] sm:min-h-52 lg:min-h-[22rem]"
-            aria-hidden="true"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(212,255,63,0.28),transparent_45%),radial-gradient(circle_at_70%_70%,rgba(255,204,51,0.22),transparent_40%),linear-gradient(160deg,#1c4a37,#050f0b)]" />
-            <div className="absolute inset-x-0 top-1/2 h-px bg-lime/40" />
-            <div className="absolute inset-y-0 left-1/2 w-px bg-lime/25" />
-            <div className="absolute left-[12%] top-[18%] h-12 w-12 rounded-full border border-lime/50 bg-lime/15 sm:h-16 sm:w-16" />
-            <div className="absolute bottom-[18%] right-[14%] h-16 w-16 rounded-full border border-amber/50 bg-amber/15 sm:h-20 sm:w-20" />
-            <div className="absolute inset-0 flex items-end p-4 sm:p-6 lg:p-7">
-              <p className="font-display max-w-xs text-lg font-bold leading-snug text-ink sm:text-xl lg:text-2xl">
-                Plan local. Decisiones tuyas. Cero magia opaca.
-              </p>
-            </div>
+          <div className="order-2">
+            <HeroPreview />
           </div>
         </div>
       </section>
@@ -112,10 +102,10 @@ export default function HomePage() {
           {advantages.map((item) => (
             <li
               key={item.title}
-              className="border-l-2 border-lime pl-4 sm:border-l-0 sm:border-t sm:border-lime/40 sm:pl-0 sm:pt-3"
+              className="border-l-2 border-lime pl-4 sm:border-l-0 sm:border-t sm:border-lime/50 sm:pl-0 sm:pt-3"
             >
               <h3 className="font-display text-lg font-semibold text-ink sm:text-xl">
-                <span className="text-lime">{item.title}</span>
+                {item.title}
               </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-foam sm:text-[0.95rem]">
                 {item.text}

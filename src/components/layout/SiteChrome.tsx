@@ -23,7 +23,7 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
           )}
           <Link
             href="/analizar"
-            className="inline-flex items-center rounded-md bg-lime px-3 py-2 text-sm font-semibold text-on-lime transition hover:bg-lime-dim"
+            className="inline-flex items-center rounded-md bg-lime px-3 py-2 text-sm font-semibold text-[#04110c] transition hover:bg-lime-dim"
           >
             <span className="sm:hidden">Analizar</span>
             <span className="hidden sm:inline">Analizar mi equipo</span>

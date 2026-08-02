@@ -9,7 +9,7 @@ export function Button({
 }) {
   const variants = {
     primary:
-      "bg-lime text-on-lime hover:bg-lime-dim font-semibold shadow-[0_0_0_1px_rgba(200,245,42,0.35)]",
+      "bg-lime text-[#04110c] hover:bg-lime-dim font-semibold shadow-[0_0_0_1px_rgba(182,240,0,0.35)]",
     secondary:
       "bg-pitch-800 text-ink border border-[var(--line)] hover:bg-pitch-700",
     ghost: "bg-transparent text-foam hover:text-ink hover:bg-pitch-800/60",
