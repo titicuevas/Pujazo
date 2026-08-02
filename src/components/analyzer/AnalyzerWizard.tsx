@@ -38,7 +38,6 @@ import {
 } from "@/lib/storage";
 import { analyzeTeam } from "@/lib/analysis";
 import {
-  Badge,
   Button,
   Field,
   Panel,
@@ -57,6 +56,22 @@ const STEPS = [
   "Análisis",
 ] as const;
 
+const STEP_SHORT = [
+  "Plat.",
+  "Liga",
+  "Plant.",
+  "Presup.",
+  "Reglas",
+  "Análisis",
+] as const;
+
+const choiceClass = (selected: boolean) =>
+  `flex cursor-pointer gap-3 rounded-lg border p-3 transition ${
+    selected
+      ? "border-lime bg-lime/10"
+      : "border-[var(--line)] hover:border-lime/40"
+  }`;
+
 export function AnalyzerWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -72,6 +87,17 @@ export function AnalyzerWizard() {
 
   const { handleSubmit, reset, setValue, trigger, getValues, control } =
     methods;
+
+  function scrollToPanelError() {
+    requestAnimationFrame(() => {
+      const panel = document.getElementById("analyzer-panel");
+      const target =
+        panel?.querySelector<HTMLElement>(
+          '[role="alert"], [aria-invalid="true"]',
+        ) ?? panel;
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
 
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -117,12 +143,34 @@ export function AnalyzerWizard() {
   async function nextStep() {
     const fields = stepFields[step];
     const ok = await trigger(fields as never);
-    if (!ok) return;
+    if (!ok) {
+      setBanner("Revisa los campos marcados antes de seguir.");
+      scrollToPanelError();
+      return;
+    }
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
   function prevStep() {
     setStep((s) => Math.max(s - 1, 0));
+  }
+
+  async function goToStep(target: number) {
+    if (target === step) return;
+    if (target < step) {
+      setStep(target);
+      return;
+    }
+    for (let i = step; i < target; i++) {
+      const ok = await trigger(stepFields[i] as never);
+      if (!ok) {
+        setStep(i);
+        setBanner("Completa este paso antes de saltar adelante.");
+        scrollToPanelError();
+        return;
+      }
+    }
+    setStep(target);
   }
 
   function loadDemo() {
@@ -132,6 +180,13 @@ export function AnalyzerWizard() {
   }
 
   function loadExampleRules() {
+    if (
+      !window.confirm(
+        "¿Cargar las reglas de ejemplo? Se sustituirán las reglas actuales de este borrador.",
+      )
+    ) {
+      return;
+    }
     setValue("rules", { ...EXAMPLE_LEAGUE_RULES }, { shouldDirty: true });
     setValue("maxPlayers", EXAMPLE_LEAGUE_RULES.maxPlayers, {
       shouldDirty: true,
@@ -141,29 +196,49 @@ export function AnalyzerWizard() {
   }
 
   function wipeLocal() {
+    if (
+      !window.confirm(
+        "¿Borrar todos los datos locales de Pujazo en este dispositivo? No se puede deshacer.",
+      )
+    ) {
+      return;
+    }
     clearAllLocalData();
     reset(createDefaultFormValues());
     setBanner("Se han borrado todos los datos locales de Pujazo.");
     setStep(0);
   }
 
-  const onSubmit = handleSubmit((raw) => {
-    const values = raw as AnalysisFormValues;
-    const maxPlayers = values.rules.maxPlayers || values.maxPlayers;
-    const synced: AnalysisFormValues = {
-      ...values,
-      maxPlayers,
-      rules: {
-        ...values.rules,
+  const onSubmit = handleSubmit(
+    (raw) => {
+      const values = raw as AnalysisFormValues;
+      const maxPlayers = values.rules.maxPlayers || values.maxPlayers;
+      const synced: AnalysisFormValues = {
+        ...values,
         maxPlayers,
-      },
-    };
-    const result = analyzeTeam(synced);
-    saveLastAnalysis(result, synced);
-    saveCustomRules(synced.rules);
-    saveFormDraft(synced);
-    router.push("/resultado");
-  });
+        rules: {
+          ...values.rules,
+          maxPlayers,
+        },
+      };
+      const result = analyzeTeam(synced);
+      saveLastAnalysis(result, synced);
+      saveCustomRules(synced.rules);
+      saveFormDraft(synced);
+      router.push("/resultado");
+    },
+    async () => {
+      for (let i = 0; i < stepFields.length; i++) {
+        const ok = await trigger(stepFields[i] as never);
+        if (!ok) {
+          setStep(i);
+          setBanner("Hay campos que revisar en este paso.");
+          scrollToPanelError();
+          return;
+        }
+      }
+    },
+  );
 
   if (!ready) {
     return (
@@ -176,16 +251,16 @@ export function AnalyzerWizard() {
   return (
     <FormProvider {...methods}>
       <form onSubmit={onSubmit} className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-ink">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">
               Analizar mi equipo
             </h1>
             <p className="mt-1 text-sm text-mist">
               Paso {step + 1} de {STEPS.length}: {STEPS[step]}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             <Button type="button" variant="secondary" onClick={loadDemo}>
               Probar con datos de ejemplo
             </Button>
@@ -196,12 +271,20 @@ export function AnalyzerWizard() {
         </div>
 
         {banner ? (
-          <p
+          <div
             role="status"
-            className="mb-4 rounded-md border border-lime/30 bg-lime/10 px-3 py-2 text-sm text-foam"
+            className="mb-4 flex items-start justify-between gap-3 rounded-md border border-lime/30 bg-lime/10 px-3 py-2 text-sm text-foam"
           >
-            {banner}
-          </p>
+            <p className="min-w-0">{banner}</p>
+            <button
+              type="button"
+              className="shrink-0 text-mist underline-offset-2 hover:text-ink hover:underline"
+              onClick={() => setBanner(null)}
+              aria-label="Cerrar aviso"
+            >
+              Cerrar
+            </button>
+          </div>
         ) : null}
 
         <nav aria-label="Progreso del formulario" className="mb-6">
@@ -210,7 +293,7 @@ export function AnalyzerWizard() {
               <li key={label}>
                 <button
                   type="button"
-                  onClick={() => setStep(index)}
+                  onClick={() => void goToStep(index)}
                   className={`w-full rounded-md border px-2 py-2 text-left text-xs transition ${
                     index === step
                       ? "border-lime bg-lime/15 text-lime"
@@ -221,6 +304,7 @@ export function AnalyzerWizard() {
                   aria-current={index === step ? "step" : undefined}
                 >
                   <span className="block font-semibold">{index + 1}</span>
+                  <span className="sm:hidden">{STEP_SHORT[index]}</span>
                   <span className="hidden sm:block">{label}</span>
                 </button>
               </li>
@@ -228,33 +312,37 @@ export function AnalyzerWizard() {
           </ol>
         </nav>
 
-        <Panel>
-          {step === 0 && <StepPlatform />}
-          {step === 1 && <StepLeague />}
-          {step === 2 && <StepSquad />}
-          {step === 3 && <StepBudget />}
-          {step === 4 && (
-            <StepRules onLoadExample={loadExampleRules} />
-          )}
-          {step === 5 && <StepAnalysisType />}
-        </Panel>
+        <div id="analyzer-panel">
+          <Panel>
+            {step === 0 && <StepPlatform />}
+            {step === 1 && <StepLeague />}
+            {step === 2 && <StepSquad />}
+            {step === 3 && <StepBudget />}
+            {step === 4 && (
+              <StepRules onLoadExample={loadExampleRules} />
+            )}
+            {step === 5 && <StepAnalysisType />}
+          </Panel>
+        </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={prevStep}
-            disabled={step === 0}
-          >
-            Anterior
-          </Button>
-          {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={nextStep}>
-              Siguiente
+        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[var(--line)] bg-pitch-950/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={prevStep}
+              disabled={step === 0}
+            >
+              Anterior
             </Button>
-          ) : (
-            <Button type="submit">Generar plan</Button>
-          )}
+            {step < STEPS.length - 1 ? (
+              <Button type="button" onClick={() => void nextStep()}>
+                Siguiente
+              </Button>
+            ) : (
+              <Button type="submit">Generar plan</Button>
+            )}
+          </div>
         </div>
       </form>
     </FormProvider>
@@ -332,8 +420,10 @@ function StepPlatform() {
 function StepLeague() {
   const {
     register,
+    watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
+  const strategy = watch("strategy");
 
   return (
     <div className="space-y-5">
@@ -390,7 +480,7 @@ function StepLeague() {
           {STRATEGY_OPTIONS.map((option) => (
             <label
               key={option.id}
-              className="flex cursor-pointer gap-3 rounded-lg border border-[var(--line)] p-3 hover:border-lime/40"
+              className={choiceClass(strategy === option.id)}
             >
               <input
                 type="radio"
@@ -437,7 +527,7 @@ function StepSquad() {
             Plantilla
           </h2>
           <p className="text-sm text-mist">
-            Añade jugadores con filas dinámicas. Los nombres deben ser únicos.
+            Añade tu equipo jugador a jugador. Los nombres deben ser únicos.
           </p>
         </div>
         <Button
@@ -477,6 +567,23 @@ function StepSquad() {
         <p role="alert" className="text-sm text-coral">
           {String(errors.squad?.message || errors.squad?.root?.message)}
         </p>
+      ) : null}
+
+      {fields.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-[var(--line)] bg-pitch-950/40 px-4 py-8 text-center">
+          <p className="font-semibold text-ink">Tu plantilla está vacía</p>
+          <p className="mt-1 text-sm text-mist">
+            Añade al menos un jugador, o carga datos de ejemplo desde arriba
+            para probar el flujo completo.
+          </p>
+          <Button
+            type="button"
+            className="mt-4"
+            onClick={() => append(createEmptySquadPlayer())}
+          >
+            Añadir primer jugador
+          </Button>
+        </div>
       ) : null}
 
       <ul className="space-y-4">
@@ -668,7 +775,12 @@ function StepBudget() {
       <p className="text-xs text-mist">Máximo actual: {maxPlayers} jugadores.</p>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="font-semibold text-ink">Jugadores en el mercado</h3>
+        <div>
+          <h3 className="font-semibold text-ink">Jugadores en el mercado</h3>
+          <p className="mt-0.5 text-xs text-mist">
+            Si no añades mercado, el plan se basa solo en tu plantilla y saldo.
+          </p>
+        </div>
         <Button
           type="button"
           variant="secondary"
@@ -680,6 +792,13 @@ function StepBudget() {
       {errors.market?.message || errors.market?.root?.message ? (
         <p role="alert" className="text-sm text-coral">
           {String(errors.market?.message || errors.market?.root?.message)}
+        </p>
+      ) : null}
+
+      {fields.length === 0 ? (
+        <p className="rounded-md border border-dashed border-[var(--line)] bg-pitch-950/30 px-3 py-4 text-sm text-mist">
+          Sin candidatos todavía. Añade jugadores que estés mirando para
+          recibir pujas y fichajes prioritarios.
         </p>
       ) : null}
 
@@ -802,9 +921,10 @@ function StepBudget() {
 function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
   const {
     register,
-    setValue,
+    watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
+  const maxPlayers = watch("maxPlayers");
 
   return (
     <div className="space-y-5">
@@ -816,6 +936,14 @@ function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
           Cargar liga de ejemplo
         </Button>
       </div>
+
+      <p className="rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2 text-sm text-foam">
+        Máximo de jugadores:{" "}
+        <strong className="text-ink">{maxPlayers}</strong>
+        <span className="mt-0.5 block text-xs text-mist">
+          Se define en el paso Presupuesto para no duplicar el dato.
+        </span>
+      </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Dinero por punto (€)" htmlFor="moneyPerPoint">
@@ -840,24 +968,6 @@ function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
             type="number"
             min={0}
             {...register("rules.matchdayMvpBonus", { valueAsNumber: true })}
-          />
-        </Field>
-        <Field
-          label="Máximo de jugadores"
-          htmlFor="rules.maxPlayers"
-          error={errors.rules?.maxPlayers?.message}
-        >
-          <TextInput
-            id="rules.maxPlayers"
-            type="number"
-            min={11}
-            {...register("rules.maxPlayers", {
-              valueAsNumber: true,
-              onChange: (e) => {
-                const value = Number(e.target.value);
-                setValue("maxPlayers", value, { shouldDirty: true });
-              },
-            })}
           />
         </Field>
         <Field label="Cambios durante la jornada" htmlFor="matchdayChanges">
@@ -908,35 +1018,45 @@ function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
         </Field>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {(
-          [
-            ["captainEnabled", "Capitán activado"],
-            ["captainDoublesNegatives", "Capitán duplica también negativos"],
-            ["strikerEnabled", "Ariete activado"],
-            ["multifunctionalPlayers", "Jugadores multifunción"],
-            ["clausesEnabled", "Cláusulas activadas"],
-            ["clausesIrreversible", "Cláusulas irreversibles"],
-            ["loansAllowed", "Cesiones permitidas"],
-            ["salesBetweenParticipants", "Ventas entre participantes"],
+      <div>
+        <p className="mb-2 text-sm font-medium text-foam">
+          Opciones que afectan al plan
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(
             [
-              "saleOnlyWhenOnMarket",
-              "Venta solo si el jugador está en el mercado",
-            ],
-          ] as const
-        ).map(([name, label]) => (
-          <label
-            key={name}
-            className="inline-flex items-center gap-2 text-sm text-foam"
-          >
-            <input
-              type="checkbox"
-              className="accent-[var(--lime)]"
-              {...register(`rules.${name}`)}
-            />
-            {label}
-          </label>
-        ))}
+              ["captainEnabled", "Capitán activado"],
+              ["captainDoublesNegatives", "Capitán duplica también negativos"],
+              ["strikerEnabled", "Ariete activado"],
+              ["multifunctionalPlayers", "Jugadores multifunción"],
+              ["clausesEnabled", "Cláusulas activadas"],
+              ["clausesIrreversible", "Cláusulas irreversibles"],
+              ["loansAllowed", "Cesiones permitidas"],
+              ["salesBetweenParticipants", "Ventas entre participantes"],
+              [
+                "saleOnlyWhenOnMarket",
+                "Venta solo si el jugador está en el mercado",
+              ],
+            ] as const
+          ).map(([name, label]) => (
+            <label
+              key={name}
+              className="inline-flex items-center gap-2 text-sm text-foam"
+            >
+              <input
+                type="checkbox"
+                className="accent-[var(--lime)]"
+                {...register(`rules.${name}`)}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        {errors.rules?.maxPlayers?.message ? (
+          <p role="alert" className="mt-2 text-xs text-coral">
+            {errors.rules.maxPlayers.message}
+          </p>
+        ) : null}
       </div>
 
       <Field label="Reglas adicionales" htmlFor="additionalRules">
@@ -955,8 +1075,10 @@ function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
 function StepAnalysisType() {
   const {
     register,
+    watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
+  const analysisType = watch("analysisType");
 
   return (
     <div className="space-y-5">
@@ -971,7 +1093,7 @@ function StepAnalysisType() {
           {ANALYSIS_TYPE_OPTIONS.map((option) => (
             <label
               key={option.id}
-              className="flex cursor-pointer gap-3 rounded-lg border border-[var(--line)] p-3 hover:border-lime/40"
+              className={choiceClass(analysisType === option.id)}
             >
               <input
                 type="radio"
@@ -1001,11 +1123,13 @@ function StepAnalysisType() {
       >
         <TextArea id="concreteDoubt" {...register("concreteDoubt")} />
       </Field>
-      <div className="flex flex-wrap gap-2">
-        <Badge tone="safe">Seguro</Badge>
-        <Badge tone="balanced">Equilibrado</Badge>
-        <Badge tone="risky">Arriesgado</Badge>
-      </div>
+      <p className="text-xs leading-relaxed text-mist">
+        El plan marcará cada recomendación como{" "}
+        <span className="text-safe">segura</span>,{" "}
+        <span className="text-balanced">equilibrada</span> o{" "}
+        <span className="text-risky">arriesgada</span> según tu estrategia y
+        reglas.
+      </p>
     </div>
   );
 }

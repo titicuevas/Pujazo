@@ -58,7 +58,7 @@ export function Field({
 }
 
 const controlClass =
-  "w-full rounded-md border border-[var(--line)] bg-pitch-950/70 px-3 py-2.5 text-sm text-ink placeholder:text-mist/60 transition hover:border-lime/30 focus:border-lime";
+  "w-full rounded-md border border-[var(--line)] bg-pitch-950/70 px-3 py-2.5 text-sm text-ink placeholder:text-mist/85 transition hover:border-lime/30 focus:border-lime";
 
 export function TextInput({
   className = "",
