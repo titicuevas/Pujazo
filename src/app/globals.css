@@ -1,26 +1,161 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --pitch-950: #06140f;
+  --pitch-900: #0b1f17;
+  --pitch-800: #123528;
+  --pitch-700: #1a4a38;
+  --lime: #b8f200;
+  --lime-dim: #8fbf00;
+  --amber: #f0a202;
+  --coral: #ff6b4a;
+  --foam: #e8f5ef;
+  --mist: #a7c4b5;
+  --ink: #f4fff8;
+  --panel: rgba(18, 53, 40, 0.72);
+  --panel-strong: rgba(11, 31, 23, 0.92);
+  --line: rgba(184, 242, 0, 0.18);
+  --safe: #3ddc97;
+  --balanced: #f0a202;
+  --risky: #ff6b4a;
+  --background: var(--pitch-950);
+  --foreground: var(--ink);
+  --font-display: var(--font-syne);
+  --font-body: var(--font-manrope);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-pitch-950: #06140f;
+  --color-pitch-900: #0b1f17;
+  --color-pitch-800: #123528;
+  --color-pitch-700: #1a4a38;
+  --color-lime: #b8f200;
+  --color-lime-dim: #8fbf00;
+  --color-amber: #f0a202;
+  --color-coral: #ff6b4a;
+  --color-foam: #e8f5ef;
+  --color-mist: #a7c4b5;
+  --color-ink: #f4fff8;
+  --color-safe: #3ddc97;
+  --color-balanced: #f0a202;
+  --color-risky: #ff6b4a;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-height: 100%;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(184, 242, 0, 0.12), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(240, 162, 2, 0.1), transparent 50%),
+    linear-gradient(180deg, var(--pitch-900) 0%, var(--pitch-950) 45%, #040d0a 100%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(184, 242, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 242, 0, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+  z-index: 0;
+}
+
+#__next,
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(184, 242, 0, 0.35);
+  color: var(--pitch-950);
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(184, 242, 0, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(184, 242, 0, 0);
+  }
+}
+
+@keyframes pitch-sweep {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.7s ease-out both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise-in 0.7s ease-out 0.12s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise-in 0.7s ease-out 0.24s both;
+}
+
+.animate-cta-glow {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+
+.hero-sheen {
+  background: linear-gradient(
+    120deg,
+    rgba(184, 242, 0, 0.08),
+    transparent 35%,
+    rgba(240, 162, 2, 0.08),
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: pitch-sweep 10s ease-in-out infinite alternate;
 }

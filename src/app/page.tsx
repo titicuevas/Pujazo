@@ -1,65 +1,155 @@
-import Image from "next/image";
+import Link from "next/link";
+import { PageShell } from "@/components/layout/SiteChrome";
+import { INDEPENDENCE_NOTICE } from "@/lib/constants";
 
-export default function Home() {
+const advantages = [
+  {
+    title: "Fichajes personalizados",
+    text: "Prioriza candidatos según tu cupo, saldo y estrategia.",
+  },
+  {
+    title: "Puja recomendada",
+    text: "Te propone puja objetivo y techo máximo con margen.",
+  },
+  {
+    title: "Ventas necesarias",
+    text: "Detecta si debes vender antes de fichar y a quién.",
+  },
+  {
+    title: "Once, capitán y ariete",
+    text: "Arma una alineación válida con tus reglas de liga.",
+  },
+  {
+    title: "Reglas adaptadas a cada liga",
+    text: "Capitán, ariete, cláusulas, cesiones y notas propias.",
+  },
+];
+
+const steps = [
+  {
+    n: "01",
+    title: "Introduce tu contexto",
+    text: "Plataforma, plantilla, saldo, mercado y reglas.",
+  },
+  {
+    n: "02",
+    title: "Elige el tipo de análisis",
+    text: "Mercado, ventas, alineación o revisión completa.",
+  },
+  {
+    n: "03",
+    title: "Recibe un plan accionable",
+    text: "Fichaje, puja, ventas, once y plan B, todo en local.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <PageShell>
+      <section className="relative overflow-hidden hero-sheen">
+        <div className="mx-auto grid min-h-[calc(100svh-3.5rem)] w-full max-w-6xl items-end gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pb-20 lg:pt-16">
+          <div className="animate-rise">
+            <p className="font-display mb-4 text-5xl font-extrabold tracking-tight text-lime sm:text-6xl md:text-7xl">
+              Pujazo
+            </p>
+            <h1 className="font-display max-w-xl text-3xl font-bold leading-tight text-ink sm:text-4xl md:text-5xl">
+              Tu plantilla. Tu mercado. Tu próximo movimiento.
+            </h1>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-mist sm:text-lg">
+              Introduce tu equipo, tu saldo, tu mercado y las reglas de tu liga.
+              Pujazo te devuelve un plan claro de fichajes, ventas, pujas y
+              alineación — sin conectar cuentas ni inventar datos en vivo.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 animate-rise-delay-1">
+              <Link
+                href="/analizar"
+                className="animate-cta-glow inline-flex items-center justify-center rounded-md bg-lime px-5 py-3 text-base font-semibold text-pitch-950 transition hover:bg-lime-dim"
+              >
+                Analizar mi equipo
+              </Link>
+              <Link
+                href="/#como-funciona"
+                className="inline-flex items-center justify-center rounded-md border border-[var(--line)] bg-pitch-800/50 px-5 py-3 text-base font-medium text-ink transition hover:bg-pitch-700"
+              >
+                Cómo funciona
+              </Link>
+            </div>
+          </div>
+
+          <div
+            className="relative min-h-64 animate-rise-delay-2 overflow-hidden rounded-none border-y border-[var(--line)] lg:min-h-[28rem] lg:rounded-2xl lg:border"
+            aria-hidden="true"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(184,242,0,0.25),transparent_45%),radial-gradient(circle_at_70%_70%,rgba(240,162,2,0.2),transparent_40%),linear-gradient(160deg,#123528,#06140f)]" />
+            <div className="absolute inset-x-0 top-1/2 h-px bg-lime/30" />
+            <div className="absolute inset-y-0 left-1/2 w-px bg-lime/20" />
+            <div className="absolute left-[12%] top-[18%] h-16 w-16 rounded-full border border-lime/40 bg-lime/10 blur-[1px]" />
+            <div className="absolute bottom-[20%] right-[16%] h-24 w-24 rounded-full border border-amber/40 bg-amber/10" />
+            <div className="absolute inset-0 flex items-end p-6 sm:p-8">
+              <p className="font-display max-w-xs text-2xl font-bold leading-snug text-ink/90">
+                Plan local. Decisiones tuyas. Cero magia opaca.
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="ventajas-title">
+        <h2
+          id="ventajas-title"
+          className="font-display text-3xl font-bold text-ink sm:text-4xl"
+        >
+          Ventajas
+        </h2>
+        <p className="mt-3 max-w-2xl text-mist">
+          Un asistente pensado para decidir rápido en el mercado, no para
+          sustituir tu criterio.
+        </p>
+        <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {advantages.map((item) => (
+            <li key={item.title} className="border-t border-lime/25 pt-4">
+              <h3 className="font-display text-xl font-semibold text-lime">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-mist">{item.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="como-funciona"
+        className="border-y border-[var(--line)] bg-pitch-900/50"
+        aria-labelledby="como-title"
+      >
+        <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <h2
+            id="como-title"
+            className="font-display text-3xl font-bold text-ink sm:text-4xl"
+          >
+            Cómo funciona
+          </h2>
+          <ol className="mt-10 grid gap-8 md:grid-cols-3">
+            {steps.map((step) => (
+              <li key={step.n} className="flex flex-col gap-3">
+                <span className="font-display text-4xl font-extrabold text-lime/40">
+                  {step.n}
+                </span>
+                <h3 className="font-display text-xl font-semibold text-ink">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-mist">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6" aria-label="Aviso de independencia">
+        <p className="rounded-xl border border-amber/30 bg-amber/10 px-4 py-4 text-sm leading-relaxed text-foam sm:px-5">
+          {INDEPENDENCE_NOTICE}
+        </p>
+      </section>
+    </PageShell>
   );
 }
