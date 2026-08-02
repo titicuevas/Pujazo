@@ -6,12 +6,16 @@ const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
   weight: ["600", "700", "800"],
+  display: "swap",
+  fallback: ["Avenir Next", "Segoe UI", "sans-serif"],
 });
 
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+  fallback: ["Avenir Next", "Segoe UI", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +37,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${syne.variable} ${manrope.variable} h-full`}>
+    <html
+      lang="es"
+      className={`${syne.variable} ${manrope.variable} h-full`}
+    >
       <body className="min-h-full flex flex-col antialiased">{children}</body>
     </html>
   );

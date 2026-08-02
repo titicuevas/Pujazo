@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Controller,
@@ -62,6 +62,7 @@ export function AnalyzerWizard() {
   const [step, setStep] = useState(0);
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const hydratedRef = useRef(false);
 
   const methods = useForm<AnalysisFormValues>({
     resolver: zodResolver(analysisFormSchema) as never,
@@ -69,30 +70,40 @@ export function AnalyzerWizard() {
     mode: "onBlur",
   });
 
-  const { handleSubmit, reset, setValue, trigger, watch } = methods;
+  const { handleSubmit, reset, setValue, trigger, getValues, control } =
+    methods;
 
   useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
     const draft = loadFormDraft();
     const rules = loadCustomRules();
-    if (draft) {
-      reset({
-        ...draft,
-        rules: rules ?? draft.rules,
-      });
-      setBanner("Se ha recuperado el último borrador guardado en este dispositivo.");
-    } else if (rules) {
-      setValue("rules", rules);
-    }
-    setReady(true);
+
+    queueMicrotask(() => {
+      if (draft) {
+        reset({
+          ...draft,
+          rules: rules ?? draft.rules,
+        });
+        setBanner(
+          "Se ha recuperado el último borrador guardado en este dispositivo.",
+        );
+      } else if (rules) {
+        setValue("rules", rules);
+      }
+      setReady(true);
+    });
   }, [reset, setValue]);
+
+  const draftValues = useWatch({ control });
 
   useEffect(() => {
     if (!ready) return;
-    const sub = watch((values) => {
-      saveFormDraft(values as AnalysisFormValues);
-    });
-    return () => sub.unsubscribe();
-  }, [ready, watch]);
+    const timer = window.setTimeout(() => {
+      saveFormDraft(getValues());
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [draftValues, ready, getValues]);
 
   const stepFields: (keyof AnalysisFormValues | `rules.${string}`)[][] = [
     ["platform", "customPlatformName"],

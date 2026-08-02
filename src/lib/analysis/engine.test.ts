@@ -205,6 +205,22 @@ describe("reglas personalizadas y demo", () => {
     expect(result.sellRecommendations.length).toBeGreaterThan(0);
     expect(result.lineup?.captain).toBeTruthy();
     expect(result.lineup?.striker).toBeTruthy();
+    expect(
+      result.sellRecommendations.every((p) => !p.doNotSell),
+    ).toBe(true);
+    expect(result.summary).toContain("Equilibrado");
+  });
+
+  it("respeta capitán y ariete desactivados", () => {
+    const demo = createDemoFormValues();
+    demo.rules.captainEnabled = false;
+    demo.rules.strikerEnabled = false;
+    const result = analyzeTeam(demo as AnalysisInput);
+    expect(result.lineup?.captain).toBeUndefined();
+    expect(result.lineup?.striker).toBeUndefined();
+    expect(result.reasons.some((r) => r.includes("capitán está desactivada"))).toBe(
+      true,
+    );
   });
 });
 

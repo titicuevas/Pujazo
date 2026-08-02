@@ -1,4 +1,5 @@
 import { STATUS_PENALTY } from "@/lib/constants";
+import { positionLabel, statusLabel } from "@/lib/labels";
 import type {
   AnalysisInput,
   MarketPlayer,
@@ -110,10 +111,14 @@ export function scoreMarketPlayer(
 
   if (needs.includes(player.position)) {
     score += 22 * weights.fit;
-    reasons.push(`Encaja en una posición necesaria (${player.position}).`);
+    reasons.push(
+      `Encaja en una posición necesaria (${positionLabel(player.position)}).`,
+    );
   } else if (excess.includes(player.position)) {
     score -= 14 * weights.fit;
-    reasons.push(`Ya hay exceso de ${player.position}s en la plantilla.`);
+    reasons.push(
+      `Ya hay exceso de ${positionLabel(player.position).toLowerCase()}s en la plantilla.`,
+    );
   } else {
     score += 4 * weights.fit;
     reasons.push("La posición es usable, aunque no es la más urgente.");
@@ -145,7 +150,7 @@ export function scoreMarketPlayer(
   const penalty = STATUS_PENALTY[player.status] * weights.status;
   score -= penalty;
   if (player.status !== "disponible") {
-    reasons.push(`Estado: ${player.status.replace("_", " ")} (penaliza).`);
+    reasons.push(`Estado: ${statusLabel(player.status)} (penaliza).`);
   }
 
   if (input.strategy === "agresivo" && player.marketValue >= 8_000_000) {
