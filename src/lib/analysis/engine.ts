@@ -73,6 +73,9 @@ function buildSummary(
   if (input.analysisType === "ventas") {
     return `Revisión de ventas para liberar cupo o saldo en ${platform}.`;
   }
+  if (input.analysisType === "comparar" && primary) {
+    return `Comparativa de candidatos en ${platform} (estrategia ${strategy}). Encabeza el ranking ${primary.player.name}; revisa la tabla para contrastar pujas y encaje.`;
+  }
   if (primary) {
     return mustSell
       ? `Para fichar a ${primary.player.name} en ${platform} necesitas vender antes y pujar con margen según tu estrategia ${strategy}.`
@@ -96,12 +99,20 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     .map((player) => scoreMarketPlayer(player, normalized))
     .sort((a, b) => b.score - a.score);
 
-  const primary =
-    normalized.analysisType === "alineacion" ||
-    normalized.analysisType === "ventas"
-      ? undefined
-      : scored[0];
+  const focusMarket =
+    normalized.analysisType !== "alineacion" &&
+    normalized.analysisType !== "ventas" &&
+    normalized.analysisType !== "capitan";
+
+  const primary = focusMarket ? scored[0] : undefined;
   const alternative = primary ? scored[1] : undefined;
+  const marketRanking =
+    normalized.analysisType === "comparar"
+      ? scored.slice(0, 5)
+      : normalized.analysisType === "mercado" ||
+          normalized.analysisType === "completo"
+        ? scored.slice(0, 3)
+        : undefined;
 
   const buyCost = primary?.recommendedBid ?? 0;
   const slotsNeeded = normalized.squad.length >= maxPlayers ? 1 : 0;
@@ -184,8 +195,20 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     reasons.push(`Ariete recomendado: ${lineup.striker.name}.`);
   }
 
+  if (normalized.analysisType === "comparar" && scored.length > 1) {
+    reasons.push(
+      `Ranking local de ${Math.min(scored.length, 5)} candidatos según tu estrategia ${strategyLabel(normalized.strategy)}.`,
+    );
+  }
+
   const alternativePlan: string[] = [];
-  if (alternative) {
+  if (normalized.analysisType === "comparar" && scored.length > 1) {
+    for (const [index, item] of scored.slice(0, 5).entries()) {
+      alternativePlan.push(
+        `${index + 1}. ${item.player.name}: score ${item.score}, puja ~${item.recommendedBid.toLocaleString("es-ES")} €, riesgo ${item.risk}.`,
+      );
+    }
+  } else if (alternative) {
     alternativePlan.push(
       `Si pierdes a ${primary?.player.name}, intenta ${alternative.player.name} con puja ~${alternative.recommendedBid.toLocaleString("es-ES")} €.`,
     );
@@ -230,6 +253,7 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     summary: buildSummary(normalized, primary, mustSell),
     primaryTarget: primary,
     alternativeTarget: alternative,
+    marketRanking,
     recommendedBid: primary?.recommendedBid,
     maxBid: primary?.maxBid,
     sellRecommendations,

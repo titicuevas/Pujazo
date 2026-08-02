@@ -160,7 +160,9 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
           />
         ) : null}
 
-        {result.alternativeTarget ? (
+        {result.marketRanking && result.marketRanking.length > 1 ? (
+          <MarketRankingPanel ranking={result.marketRanking} />
+        ) : result.alternativeTarget ? (
           <Panel>
             <h2 className="font-display text-lg font-semibold text-lime">
               Plan B · segunda alternativa
@@ -253,6 +255,67 @@ function PrimaryTarget({
           <li key={reason}>{reason}</li>
         ))}
       </ul>
+    </Panel>
+  );
+}
+
+function MarketRankingPanel({
+  ranking,
+}: {
+  ranking: NonNullable<AnalysisResult["marketRanking"]>;
+}) {
+  return (
+    <Panel>
+      <h2 className="font-display text-xl font-semibold text-lime">
+        Comparativa de candidatos
+      </h2>
+      <p className="mt-1 text-sm text-mist">
+        Ordenados por puntuación local según tu estrategia, cupo y saldo.
+      </p>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-[var(--line)] text-xs uppercase tracking-wide text-mist">
+              <th className="py-2 pr-3 font-medium">#</th>
+              <th className="py-2 pr-3 font-medium">Jugador</th>
+              <th className="py-2 pr-3 font-medium">Score</th>
+              <th className="py-2 pr-3 font-medium">Puja</th>
+              <th className="py-2 pr-3 font-medium">Máx.</th>
+              <th className="py-2 font-medium">Riesgo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranking.map((item, index) => (
+              <tr
+                key={item.player.id}
+                className="border-b border-[var(--line)]/60 last:border-0"
+              >
+                <td className="py-2.5 pr-3 text-mist">{index + 1}</td>
+                <td className="py-2.5 pr-3">
+                  <span className="font-semibold text-ink">
+                    {item.player.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-mist">
+                    {positionLabel(item.player.position)}
+                  </span>
+                </td>
+                <td className="py-2.5 pr-3 font-semibold text-lime">
+                  {item.score}
+                </td>
+                <td className="py-2.5 pr-3 text-foam">
+                  {formatMoney(item.recommendedBid)}
+                </td>
+                <td className="py-2.5 pr-3 text-foam">
+                  {formatMoney(item.maxBid)}
+                </td>
+                <td className="py-2.5">
+                  <RiskBadge level={item.risk} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Panel>
   );
 }

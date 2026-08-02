@@ -141,11 +141,11 @@ src/
 - React Doctor + QA (`pnpm qa` / `pnpm qa:full`)
 - E2e Playwright en desktop, tablet y móvil
 
-## Pasos futuros (V3+)
+## En curso · V3
 
-- Conectores opcionales (extensión del navegador con consentimiento explícito)
+- Comparativa avanzada de candidatos (ranking en resultado) ✅
 - Exportación PDF / historial multi-dispositivo
-- Modo comparación avanzada entre candidatos
+- Conectores opcionales (extensión del navegador con consentimiento explícito)
 - Posible capa de IA opcional y transparente (nunca opaca)
 
 ## Despliegue en Vercel

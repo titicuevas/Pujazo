@@ -211,6 +211,21 @@ describe("reglas personalizadas y demo", () => {
     expect(result.summary).toContain("Equilibrado");
   });
 
+  it("en modo comparar genera ranking de candidatos", () => {
+    const demo = createDemoFormValues();
+    demo.analysisType = "comparar";
+    const result = analyzeTeam(demo as AnalysisInput);
+    expect(result.marketRanking?.length).toBeGreaterThan(1);
+    expect(result.marketRanking?.[0]?.player.name).toBe(
+      result.primaryTarget?.player.name,
+    );
+    expect(result.summary).toMatch(/Comparativa/i);
+    expect(result.lineup).toBeUndefined();
+    expect(
+      result.alternativePlan.some((line) => line.startsWith("1.")),
+    ).toBe(true);
+  });
+
   it("respeta capitán y ariete desactivados", () => {
     const demo = createDemoFormValues();
     demo.rules.captainEnabled = false;

@@ -113,6 +113,8 @@ export interface AnalysisResult {
   summary: string;
   primaryTarget?: ScoredMarketPlayer;
   alternativeTarget?: ScoredMarketPlayer;
+  /** Top candidatos ordenados (modo comparar / mercado / completo) */
+  marketRanking?: ScoredMarketPlayer[];
   recommendedBid?: number;
   maxBid?: number;
   sellRecommendations: SquadPlayer[];

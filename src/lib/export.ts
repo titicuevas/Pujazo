@@ -35,6 +35,15 @@ export function analysisToPlainText(result: AnalysisResult): string {
     );
   }
 
+  if (result.marketRanking?.length) {
+    lines.push("", "COMPARATIVA DE CANDIDATOS");
+    result.marketRanking.forEach((item, index) => {
+      lines.push(
+        `${index + 1}. ${item.player.name} · score ${item.score} · puja ${formatMoney(item.recommendedBid)} · máx ${formatMoney(item.maxBid)} · riesgo ${item.risk}`,
+      );
+    });
+  }
+
   if (result.sellRecommendations.length) {
     lines.push(
       "",

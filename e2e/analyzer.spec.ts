@@ -69,6 +69,26 @@ test.describe("Flujo del analizador", () => {
     await expect(page.getByRole("heading", { name: "En una frase" })).toBeVisible();
   });
 
+  test("modo comparar muestra tabla de candidatos", async ({ page }) => {
+    await page.goto("/analizar");
+    await page.getByRole("button", { name: "Probar con datos de ejemplo" }).click();
+
+    await page
+      .getByRole("navigation", { name: "Progreso del formulario" })
+      .getByRole("button", { name: /6/ })
+      .click();
+
+    await page.getByLabel(/Comparar jugadores/i).click();
+    await page.getByRole("button", { name: "Generar plan" }).click();
+    await page.waitForURL("**/resultado");
+
+    await expect(
+      page.getByRole("heading", { name: "Comparativa de candidatos" }),
+    ).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Score" })).toBeVisible();
+    await expect(page.getByText(/Comparativa de candidatos/i).first()).toBeVisible();
+  });
+
   test("importa plantilla pegada estilo Biwenger", async ({ page }) => {
     await page.goto("/analizar");
 
