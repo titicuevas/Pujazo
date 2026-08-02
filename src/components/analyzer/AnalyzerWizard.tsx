@@ -561,8 +561,8 @@ function StepSquad() {
             Plantilla
           </h2>
           <p className="text-sm text-mist">
-            Añade tu equipo a mano o pégalo desde tu fantasy. Los nombres deben
-            ser únicos.
+            En móvil o PC: pega tu plantilla con la guía de abajo, o añade
+            jugadores a mano. Los nombres deben ser únicos.
           </p>
         </div>
         <Button
@@ -575,8 +575,8 @@ function StepSquad() {
       </div>
 
       <PasteImportPanel
-        title="Pegar plantilla desde Biwenger (texto)"
-        hint="Mejor que una captura: en Biwenger ve a Equipo → Plantilla, selecciona todo (Ctrl+A), copia (Ctrl+C) y pega aquí. Leemos nombre, posición (PT/DF/MC/DL) y valor."
+        kind="squad"
+        defaultOpen
         onImport={importSquadPlayers}
       />
 
@@ -614,8 +614,8 @@ function StepSquad() {
         <div className="rounded-lg border border-dashed border-[var(--line)] bg-pitch-950/40 px-4 py-8 text-center">
           <p className="font-semibold text-ink">Tu plantilla está vacía</p>
           <p className="mt-1 text-sm text-mist">
-            Pega tu equipo arriba, añade jugadores a mano, o carga datos de
-            ejemplo desde la cabecera.
+            Usa la guía de pegado arriba (móvil o PC), añade jugadores a mano, o
+            carga datos de ejemplo desde la cabecera.
           </p>
           <Button
             type="button"
@@ -860,8 +860,8 @@ function StepBudget() {
       </div>
 
       <PasteImportPanel
-        title="Pegar mercado desde Biwenger (texto)"
-        hint="Mejor que una captura: en Mercado, Ctrl+A / Ctrl+C y pega solo esa pantalla. Ignoramos el catálogo “Todos los jugadores” y la evolución. Si hay cláusula, la usamos como precio mínimo."
+        kind="market"
+        defaultOpen
         onImport={importMarketPlayers}
       />
 
