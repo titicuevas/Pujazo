@@ -537,6 +537,9 @@ function StepSquad() {
       name: p.name,
       position: p.position ?? "centrocampista",
       value: p.value ?? 0,
+      extraPositions: (p.extraPositions ?? []).filter(
+        (pos) => pos !== (p.position ?? "centrocampista"),
+      ),
     }));
     if (mode === "replace") {
       replace(mapped);
@@ -572,8 +575,8 @@ function StepSquad() {
       </div>
 
       <PasteImportPanel
-        title="Pegar plantilla desde tu fantasy"
-        hint="En Biwenger, Comunio u otra plataforma: abre tu equipo, copia el texto (Ctrl+A / Ctrl+C) y pégalo aquí. Detectamos nombres y, si aparecen, posición y valor."
+        title="Pegar plantilla desde Biwenger (texto)"
+        hint="Mejor que una captura: en Biwenger ve a Equipo → Plantilla, selecciona todo (Ctrl+A), copia (Ctrl+C) y pega aquí. Leemos nombre, posición (PT/DF/MC/DL) y valor."
         onImport={importSquadPlayers}
       />
 
@@ -780,6 +783,7 @@ function StepBudget() {
       name: p.name,
       position: p.position ?? "centrocampista",
       marketValue: p.value ?? 0,
+      minPrice: p.clausePrice,
     }));
     if (mode === "replace") {
       replace(mapped);
@@ -856,8 +860,8 @@ function StepBudget() {
       </div>
 
       <PasteImportPanel
-        title="Pegar mercado desde tu fantasy"
-        hint="Copia la lista de jugadores del mercado (o candidatos que estés mirando) y pégala aquí. Luego revisa valores y pujas."
+        title="Pegar mercado desde Biwenger (texto)"
+        hint="Mejor que una captura: en Mercado, Ctrl+A / Ctrl+C y pega solo esa pantalla. Ignoramos el catálogo “Todos los jugadores” y la evolución. Si hay cláusula, la usamos como precio mínimo."
         onImport={importMarketPlayers}
       />
 
