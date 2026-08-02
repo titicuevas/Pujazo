@@ -5,6 +5,7 @@ import { Button, TextArea } from "@/components/ui/Primitives";
 import {
   parsePastedPlayers,
   type ParsedPastePlayer,
+  type PasteMeta,
 } from "@/lib/importPaste";
 
 type PasteMode = "replace" | "append";
@@ -38,7 +39,11 @@ export function PasteImportPanel({
   defaultOpen = false,
 }: {
   kind: ImportKind;
-  onImport: (players: ParsedPastePlayer[], mode: PasteMode) => void;
+  onImport: (
+    players: ParsedPastePlayer[],
+    mode: PasteMode,
+    meta: PasteMeta,
+  ) => void;
   defaultOpen?: boolean;
 }) {
   const copy = COPY[kind];
@@ -54,8 +59,8 @@ export function PasteImportPanel({
       setFeedback(result.warnings[0] ?? "No se detectaron jugadores.");
       return;
     }
-    onImport(result.players, mode);
-    const extra = result.warnings.length > 0 ? ` ${result.warnings[0]}` : "";
+    onImport(result.players, mode, result.meta);
+    const extra = result.warnings.length > 0 ? ` ${result.warnings.join(" ")}` : "";
     setFeedback(
       `Importados ${result.players.length} jugador${result.players.length === 1 ? "" : "es"}.${extra}`,
     );

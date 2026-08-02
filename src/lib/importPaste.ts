@@ -16,6 +16,12 @@ export type PasteParseResult = {
   players: ParsedPastePlayer[];
   skippedLines: number;
   warnings: string[];
+  meta: PasteMeta;
+};
+
+export type PasteMeta = {
+  /** Saldo detectado junto a la etiqueta “Saldo” en el pegado */
+  balance?: number;
 };
 
 const POSITION_ALIASES: { position: Position; tokens: string[] }[] = [
@@ -66,23 +72,27 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
       players: [],
       skippedLines: 0,
       warnings: ["No hay texto que importar."],
+      meta: {},
     };
   }
 
   text = trimToUsefulSection(text);
 
+  const meta = extractPasteMeta(text);
   const biwenger = parseBiwengerCards(text);
   if (biwenger && biwenger.players.length > 0) {
-    return finalize(biwenger.players, biwenger.skippedLines, warnings);
+    return finalize(biwenger.players, biwenger.skippedLines, warnings, meta);
   }
 
-  return finalize(...parseLineByLine(text), warnings);
+  const [players, skippedLines] = parseLineByLine(text);
+  return finalize(players, skippedLines, warnings, meta);
 }
 
 function finalize(
   players: ParsedPastePlayer[],
   skippedLines: number,
   warnings: string[],
+  meta: PasteMeta,
 ): PasteParseResult {
   if (players.length === 0) {
     warnings.push(
@@ -93,7 +103,32 @@ function finalize(
       "Algunos jugadores no traían valor: revísalos y completa el precio en el formulario.",
     );
   }
-  return { players, skippedLines, warnings };
+  if (meta.balance !== undefined) {
+    warnings.push(
+      `Saldo detectado: ${meta.balance.toLocaleString("es-ES")} € (puedes corregirlo en Presupuesto).`,
+    );
+  }
+  return { players, skippedLines, warnings, meta };
+}
+
+/** Busca importes etiquetados como Saldo en pegados de Biwenger. */
+export function extractPasteMeta(raw: string): PasteMeta {
+  const text = raw.replace(/\r\n/g, "\n");
+  const patterns = [
+    /Saldo\s*\n\s*([^\n]+)/i,
+    /([^\n]+)\s*\n\s*Saldo\b/i,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (!match?.[1]) continue;
+    const value = extractMoney(match[1].trim());
+    // Evitar “Valor de equipo” enorme confundido: saldo suele ser < 50M en ligas típicas
+    // pero permitimos hasta 100M; descartar si parece valor de plantilla (>80M) y hay otro candidato
+    if (value !== undefined && value >= 10_000) {
+      return { balance: value };
+    }
+  }
+  return {};
 }
 
 /** Quita alineación, catálogo global y ruido de UI de Biwenger. */

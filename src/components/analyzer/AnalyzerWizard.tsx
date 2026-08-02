@@ -13,8 +13,8 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ANALYSIS_TYPE_OPTIONS,
-  EXAMPLE_LEAGUE_RULES,
   PLATFORM_OPTIONS,
+  PLATFORM_RULE_PRESETS,
   POSITION_OPTIONS,
   STATUS_OPTIONS,
   STRATEGY_OPTIONS,
@@ -32,7 +32,7 @@ import {
   type AnalysisFormValues,
 } from "@/lib/schemas";
 import { countByPosition } from "@/lib/analysis";
-import type { ParsedPastePlayer } from "@/lib/importPaste";
+import type { ParsedPastePlayer, PasteMeta } from "@/lib/importPaste";
 import {
   clearAllLocalData,
   loadCustomRules,
@@ -185,20 +185,20 @@ export function AnalyzerWizard() {
     setStep(0);
   }
 
-  function loadExampleRules() {
+  function applyRulePreset(presetId: string) {
+    const preset = PLATFORM_RULE_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
     if (
       !window.confirm(
-        "¿Cargar las reglas de ejemplo? Se sustituirán las reglas actuales de este borrador.",
+        `¿Cargar el preset “${preset.label}”? Se sustituirán las reglas actuales de este borrador.`,
       )
     ) {
       return;
     }
-    setValue("rules", { ...EXAMPLE_LEAGUE_RULES }, { shouldDirty: true });
-    setValue("maxPlayers", EXAMPLE_LEAGUE_RULES.maxPlayers, {
-      shouldDirty: true,
-    });
-    saveCustomRules(EXAMPLE_LEAGUE_RULES);
-    setBanner("Reglas de liga de ejemplo cargadas.");
+    setValue("rules", { ...preset.rules }, { shouldDirty: true });
+    setValue("maxPlayers", preset.rules.maxPlayers, { shouldDirty: true });
+    saveCustomRules(preset.rules);
+    setBanner(`Preset de reglas “${preset.label}” cargado. Ajústalo si tu liga es distinta.`);
   }
 
   function wipeLocal() {
@@ -325,7 +325,7 @@ export function AnalyzerWizard() {
             {step === 2 && <StepSquad />}
             {step === 3 && <StepBudget />}
             {step === 4 && (
-              <StepRules onLoadExample={loadExampleRules} />
+              <StepRules onLoadPreset={applyRulePreset} />
             )}
             {step === 5 && <StepAnalysisType />}
           </Panel>
@@ -513,6 +513,7 @@ function StepSquad() {
     control,
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
   const { fields, append, remove, replace } = useFieldArray({
@@ -531,6 +532,7 @@ function StepSquad() {
   function importSquadPlayers(
     players: ParsedPastePlayer[],
     mode: "replace" | "append",
+    meta: PasteMeta,
   ) {
     const mapped = players.map((p) => ({
       ...createEmptySquadPlayer(),
@@ -543,13 +545,16 @@ function StepSquad() {
     }));
     if (mode === "replace") {
       replace(mapped);
-      return;
+    } else {
+      const existing = new Set(squad.map((p) => normalizeName(p.name)));
+      for (const player of mapped) {
+        if (existing.has(normalizeName(player.name))) continue;
+        append(player);
+        existing.add(normalizeName(player.name));
+      }
     }
-    const existing = new Set(squad.map((p) => normalizeName(p.name)));
-    for (const player of mapped) {
-      if (existing.has(normalizeName(player.name))) continue;
-      append(player);
-      existing.add(normalizeName(player.name));
+    if (meta.balance !== undefined) {
+      setValue("balance", meta.balance, { shouldDirty: true });
     }
   }
 
@@ -777,6 +782,7 @@ function StepBudget() {
   function importMarketPlayers(
     players: ParsedPastePlayer[],
     mode: "replace" | "append",
+    meta: PasteMeta,
   ) {
     const mapped = players.map((p) => ({
       ...createEmptyMarketPlayer(),
@@ -787,13 +793,16 @@ function StepBudget() {
     }));
     if (mode === "replace") {
       replace(mapped);
-      return;
+    } else {
+      const existing = new Set(market.map((p) => normalizeName(p.name)));
+      for (const player of mapped) {
+        if (existing.has(normalizeName(player.name))) continue;
+        append(player);
+        existing.add(normalizeName(player.name));
+      }
     }
-    const existing = new Set(market.map((p) => normalizeName(p.name)));
-    for (const player of mapped) {
-      if (existing.has(normalizeName(player.name))) continue;
-      append(player);
-      existing.add(normalizeName(player.name));
+    if (meta.balance !== undefined) {
+      setValue("balance", meta.balance, { shouldDirty: true });
     }
   }
 
@@ -994,23 +1003,55 @@ function StepBudget() {
   );
 }
 
-function StepRules({ onLoadExample }: { onLoadExample: () => void }) {
+function StepRules({
+  onLoadPreset,
+}: {
+  onLoadPreset: (presetId: string) => void;
+}) {
   const {
     register,
     watch,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
   const maxPlayers = watch("maxPlayers");
+  const platform = watch("platform");
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold text-lime">
-          Reglas de la liga
-        </h2>
-        <Button type="button" variant="secondary" onClick={onLoadExample}>
-          Cargar liga de ejemplo
-        </Button>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold text-lime">
+            Reglas de la liga
+          </h2>
+          <p className="mt-1 text-sm text-mist">
+            Empieza con un preset de plataforma y ajústalo a tu comunidad.
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-[var(--line)] bg-pitch-950/40 p-3">
+        <p className="text-sm font-semibold text-ink">Presets por plataforma</p>
+        <p className="mt-1 text-xs text-mist">
+          Son orientativos (no oficiales). El de tu plataforma actual aparece
+          primero.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[
+            ...PLATFORM_RULE_PRESETS.filter((p) => p.id === platform),
+            ...PLATFORM_RULE_PRESETS.filter((p) => p.id !== platform),
+          ].map((preset) => (
+            <Button
+              key={preset.id}
+              type="button"
+              variant={preset.id === platform ? "secondary" : "ghost"}
+              className="text-left"
+              onClick={() => onLoadPreset(preset.id)}
+              title={preset.description}
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <p className="rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2 text-sm text-foam">

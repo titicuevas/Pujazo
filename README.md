@@ -13,6 +13,8 @@ Pujazo **no** se conecta a Biwenger, Comunio, LALIGA FANTASY ni otras plataforma
 - Carga de **liga de ejemplo** con reglas reales de referencia
 - Carga de **datos de ejemplo** ficticios (plantilla 18, mercado, necesidad de vender)
 - **Importar pegando** plantilla y mercado desde tu fantasy (sin login ni scraping)
+- Guía móvil/PC para copiar desde Biwenger + botón de portapapeles
+- Presets de reglas por plataforma
 - Motor local de recomendaciones (`src/lib/analysis`)
 - Once, formación, capitán y ariete
 - Persistencia temporal en `localStorage` (borrador, último análisis, reglas)
@@ -121,19 +123,27 @@ src/
     export.ts           # Copiar / descargar / compartir
 ```
 
-## Limitaciones del MVP
+## Limitaciones del MVP / V2
 
 - Sin API de inteligencia artificial
 - Sin login, pagos, base de datos ni scraping
-- Sin conexión a cuentas de fantasy
+- Sin conexión automática a cuentas de fantasy (sí: **pegar texto** de plantilla/mercado)
 - Sin automatización de fichajes, pujas, ventas o alineaciones
 - Sin estadísticas, lesiones o noticias en tiempo real
-- Las recomendaciones se basan solo en los datos introducidos por el usuario
+- Las recomendaciones se basan solo en los datos introducidos o pegados por el usuario
 
-## Pasos futuros
+## Qué incluye la V2 (actual)
+
+- Importar plantilla y mercado pegando desde Biwenger (móvil y PC, con guía)
+- Detección de saldo al pegar
+- Presets de reglas por plataforma (Biwenger / Comunio / LALIGA FANTASY / genérico)
+- Resultado demo-ready (copiar / descargar / compartir)
+- React Doctor + QA (`pnpm qa` / `pnpm qa:full`)
+- E2e Playwright en desktop, tablet y móvil
+
+## Pasos futuros (V3+)
 
 - Conectores opcionales (extensión del navegador con consentimiento explícito)
-- Mejoras de UX móvil y plantillas de reglas por plataforma
 - Exportación PDF / historial multi-dispositivo
 - Modo comparación avanzada entre candidatos
 - Posible capa de IA opcional y transparente (nunca opaca)

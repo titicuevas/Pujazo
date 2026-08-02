@@ -159,6 +159,89 @@ export const EXAMPLE_LEAGUE_RULES: LeagueRules = {
     "Ser activo. No abandonar antes de terminar la temporada. El último clasificado paga una ronda de copas premium. Otras sanciones sociales no deben afectar al análisis deportivo.",
 };
 
+/** Presets editables por plataforma (punto de partida; el usuario puede ajustar). */
+export const PLATFORM_RULE_PRESETS: {
+  id: PlatformId;
+  label: string;
+  description: string;
+  rules: LeagueRules;
+}[] = [
+  {
+    id: "biwenger",
+    label: "Biwenger",
+    description: "18 jugadores, capitán x2, ariete, cláusulas y multifunción.",
+    rules: { ...EXAMPLE_LEAGUE_RULES },
+  },
+  {
+    id: "comunio",
+    label: "Comunio",
+    description: "Enfoque clásico: plantilla amplia, sin ariete ni cláusulas típicas.",
+    rules: {
+      ...EXAMPLE_LEAGUE_RULES,
+      maxPlayers: 22,
+      moneyPerPoint: 0,
+      matchMvpBonus: 0,
+      matchdayMvpBonus: 0,
+      matchdayChanges: 0,
+      captainEnabled: false,
+      captainMultiplier: 1,
+      captainDoublesNegatives: false,
+      strikerEnabled: false,
+      strikerBonus: 0,
+      strikerMaxBonusPerMatch: 0,
+      multifunctionalPlayers: false,
+      clausesEnabled: false,
+      clausesIrreversible: false,
+      loansAllowed: false,
+      maxLoanMatchdays: 0,
+      salesBetweenParticipants: true,
+      saleOnlyWhenOnMarket: false,
+      additionalRules:
+        "Preset orientativo Comunio: ajusta dinero por punto y ventas a tu comunidad.",
+      privateNotes: "",
+    },
+  },
+  {
+    id: "laliga_fantasy",
+    label: "LALIGA FANTASY",
+    description: "Capitán, cambios de jornada y plantilla media.",
+    rules: {
+      ...EXAMPLE_LEAGUE_RULES,
+      maxPlayers: 18,
+      moneyPerPoint: 0,
+      matchMvpBonus: 0,
+      matchdayMvpBonus: 0,
+      matchdayChanges: 3,
+      captainEnabled: true,
+      captainMultiplier: 2,
+      captainDoublesNegatives: false,
+      strikerEnabled: false,
+      strikerBonus: 0,
+      strikerMaxBonusPerMatch: 0,
+      multifunctionalPlayers: true,
+      clausesEnabled: false,
+      clausesIrreversible: false,
+      loansAllowed: false,
+      maxLoanMatchdays: 0,
+      salesBetweenParticipants: false,
+      saleOnlyWhenOnMarket: false,
+      additionalRules:
+        "Preset orientativo LALIGA FANTASY: revisa puntuación y mercado de tu liga.",
+      privateNotes: "",
+    },
+  },
+  {
+    id: "otro",
+    label: "Genérico",
+    description: "Partiendo de la liga de ejemplo; personalízalo a tu gusto.",
+    rules: {
+      ...EXAMPLE_LEAGUE_RULES,
+      additionalRules: "Preset genérico: adapta cada casilla a las normas de tu liga.",
+      privateNotes: "",
+    },
+  },
+];
+
 export const INDEPENDENCE_NOTICE =
   "Pujazo es una herramienta independiente y no está afiliada ni respaldada por Biwenger, Comunio, LALIGA FANTASY ni otras plataformas mencionadas.";
 

@@ -180,4 +180,21 @@ Mbappé
     expect(result.players.some((p) => p.name === "Mbappé")).toBe(false);
     expect(result.players.some((p) => p.name === "Yamal")).toBe(false);
   });
+
+  it("detecta el saldo etiquetado en pegados Biwenger", () => {
+    const raw = `
+Plantilla
+Aitor Fernández
+PT
+0
+Aitor Fernández
+200.000 €
+Vender
+3,8M €
+Saldo
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.meta.balance).toBe(3_800_000);
+    expect(result.players[0]?.name).toBe("Aitor Fernández");
+  });
 });
