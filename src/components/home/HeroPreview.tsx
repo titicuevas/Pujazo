@@ -5,7 +5,7 @@
 export function HeroPreview() {
   return (
     <aside
-      className="animate-rise-delay-2 rounded-xl border border-[var(--line)] bg-pitch-900/90 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.35)] sm:p-5"
+      className="animate-rise-delay-2 rounded-xl border border-[var(--line)] bg-pitch-900/95 p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] sm:p-4"
       aria-label="Ejemplo de plan que genera Pujazo"
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-mist">
@@ -15,13 +15,13 @@ export function HeroPreview() {
         Tu plan de acción
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-2.5">
         <div className="rounded-lg border border-[var(--line)] bg-pitch-950/70 p-3">
           <p className="text-xs text-mist">Fichaje prioritario</p>
           <p className="mt-1 font-semibold text-ink">Y. Cordero · Delantero</p>
           <p className="mt-2 text-sm text-foam">
             Puja recomendada{" "}
-            <span className="font-semibold text-[#04110c] rounded bg-lime px-1.5 py-0.5">
+            <span className="font-semibold rounded bg-[var(--cta-bg)] px-1.5 py-0.5 text-[#04110c]">
               9.450.000 €
             </span>
           </p>
@@ -56,7 +56,7 @@ export function HeroPreview() {
         </div>
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed text-mist">
+      <p className="mt-3 text-xs leading-relaxed text-mist">
         Así se ve un plan generado en local a partir de tus datos.
       </p>
     </aside>
