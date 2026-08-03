@@ -306,4 +306,10 @@ Valor alineado
     expect(result.meta.balance).toBe(-39_100);
     expect(result.players.some((p) => p.name === "Lookman")).toBe(true);
   });
+
+  it("devuelve tips de fallo por plataforma", () => {
+    expect(getPasteFailureHint("biwenger", "squad")).toMatch(/Plantilla/i);
+    expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);
+    expect(getPasteFailureHint("laliga_fantasy", "squad")).toMatch(/LALIGA/i);
+  });
 });
