@@ -460,9 +460,19 @@ function StepLeague() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
   const strategy = watch("strategy");
+  const participants = watch("participants") || 10;
+  const currentPosition = watch("currentPosition") || 1;
+
+  const participantOptions = Array.from({ length: 19 }, (_, i) => i + 2); // 2..20
+  const positionOptions = Array.from(
+    { length: Math.max(2, participants) },
+    (_, i) => i + 1,
+  );
+  const matchdayOptions = Array.from({ length: 38 }, (_, i) => i + 1);
 
   return (
     <div className="space-y-5">
@@ -478,37 +488,57 @@ function StepLeague() {
           htmlFor="participants"
           error={errors.participants?.message}
         >
-          <TextInput
+          <TextSelect
             id="participants"
-            type="number"
-            min={2}
-            {...register("participants", { valueAsNumber: true })}
+            {...register("participants", {
+              valueAsNumber: true,
+              onChange: (event) => {
+                const next = Number(event.target.value);
+                if (currentPosition > next) {
+                  setValue("currentPosition", next, { shouldDirty: true });
+                }
+              },
+            })}
             aria-invalid={Boolean(errors.participants)}
-          />
+          >
+            {participantOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field
           label="Tu posición actual"
           htmlFor="currentPosition"
           error={errors.currentPosition?.message}
         >
-          <TextInput
+          <TextSelect
             id="currentPosition"
-            type="number"
-            min={1}
             {...register("currentPosition", { valueAsNumber: true })}
-          />
+          >
+            {positionOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}º
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field
           label="Jornada"
           htmlFor="matchday"
           error={errors.matchday?.message}
         >
-          <TextInput
+          <TextSelect
             id="matchday"
-            type="number"
-            min={1}
             {...register("matchday", { valueAsNumber: true })}
-          />
+          >
+            {matchdayOptions.map((n) => (
+              <option key={n} value={n}>
+                Jornada {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
       </div>
       <fieldset>
@@ -1192,50 +1222,69 @@ function StepRules({
           />
         </Field>
         <Field label="Cambios durante la jornada" htmlFor="matchdayChanges">
-          <TextInput
+          <TextSelect
             id="matchdayChanges"
-            type="number"
-            min={0}
             {...register("rules.matchdayChanges", { valueAsNumber: true })}
-          />
+          >
+            {Array.from({ length: 12 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field label="Multiplicador del capitán" htmlFor="captainMultiplier">
-          <TextInput
+          <TextSelect
             id="captainMultiplier"
-            type="number"
-            min={1}
-            step={0.5}
             {...register("rules.captainMultiplier", { valueAsNumber: true })}
-          />
+          >
+            {[1, 1.5, 2, 2.5, 3].map((n) => (
+              <option key={n} value={n}>
+                ×{n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field label="Bonificación del ariete" htmlFor="strikerBonus">
-          <TextInput
+          <TextSelect
             id="strikerBonus"
-            type="number"
-            min={0}
             {...register("rules.strikerBonus", { valueAsNumber: true })}
-          />
+          >
+            {Array.from({ length: 11 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field
           label="Bonificación máxima ariete/partido"
           htmlFor="strikerMaxBonusPerMatch"
         >
-          <TextInput
+          <TextSelect
             id="strikerMaxBonusPerMatch"
-            type="number"
-            min={0}
             {...register("rules.strikerMaxBonusPerMatch", {
               valueAsNumber: true,
             })}
-          />
+          >
+            {Array.from({ length: 11 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
         <Field label="Máx. jornadas de cesión" htmlFor="maxLoanMatchdays">
-          <TextInput
+          <TextSelect
             id="maxLoanMatchdays"
-            type="number"
-            min={0}
             {...register("rules.maxLoanMatchdays", { valueAsNumber: true })}
-          />
+          >
+            {Array.from({ length: 11 }, (_, i) => i).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </TextSelect>
         </Field>
       </div>
 

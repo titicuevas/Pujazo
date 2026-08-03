@@ -19,7 +19,7 @@ test.describe("Pegado real CHACHOS F.C", () => {
       page.getByRole("heading", { name: "Contexto de la liga" }),
     ).toBeVisible();
     await page.getByLabel(/Nombre de la liga/i).fill("CHACHOS F.C");
-    await page.getByLabel(/Tu posición actual/i).fill("6");
+    await page.getByLabel(/Tu posición actual/i).selectOption("6");
 
     await page
       .getByRole("navigation", { name: "Progreso del formulario" })
