@@ -14,6 +14,38 @@ import type { PlatformId } from "@/lib/types";
 type PasteMode = "replace" | "append";
 type ImportKind = "squad" | "market";
 
+/** Mensajes de carga del OCR con tono de fútbol (sin tecnicismos). */
+function footballOcrProgress(status: string, progress: number): string {
+  const pct = Math.round(progress * 100);
+  const key = status.toLowerCase();
+
+  if (key === "warmup") return "Calentando en el vestuario…";
+  if (key === "tactics") return "Afinando la pizarra…";
+  if (key === "second-half") return "Segunda parte: otro ángulo de la captura…";
+  if (key.startsWith("scouting")) {
+    return pct > 0
+      ? `Ojeando la plantilla… ${pct}%`
+      : "Ojeando la plantilla…";
+  }
+
+  // Estados internos de Tesseract (primera descarga de modelos)
+  if (
+    key.includes("loading") ||
+    key.includes("download") ||
+    key.includes("initialized") ||
+    key.includes("loaded") ||
+    (pct <= 0 && !key)
+  ) {
+    return "Fichando al ojeador (solo la primera vez)…";
+  }
+  if (key.includes("recognizing") || key.includes("leyendo")) {
+    return pct > 0
+      ? `Ojeando la plantilla… ${pct}%`
+      : "Ojeando la plantilla…";
+  }
+  return pct > 0 ? `En el banquillo técnico… ${pct}%` : "En el banquillo técnico…";
+}
+
 const GUIDE: Record<
   PlatformId,
   Record<ImportKind, { where: string; tip: string }>
@@ -21,13 +53,13 @@ const GUIDE: Record<
   biwenger: {
     squad: {
       where:
-        "En Biwenger app: Equipo → Plantilla. Puedes compartir la plantilla o hacer captura de la lista.",
-      tip: "Si compartes y solo salen nombres, completa valores a mano. La captura de la lista con “Vender” trae precios.",
+        "En Biwenger app: Equipo → Plantilla (vista lista con botón “Vender” en cada jugador).",
+      tip: "Lo más fiable: Compartir → pegar el texto #Biwenger. Si usas foto, captura la lista con precios; el cartel bonito de compartir no trae jugadores legibles.",
     },
     market: {
       where:
-        "En Biwenger app: Mercado → Compartir (sale un texto con #Biwenger y los nombres). Pégalo aquí.",
-      tip: "Ese share no trae precios: luego rellena valores o usa captura de la rejilla del mercado.",
+        "En Biwenger app: Mercado → Compartir (texto #Biwenger con nombres) o captura de la rejilla con “Pujar”.",
+      tip: "El share de texto es más fiable que la foto. La captura del cartel decorativo casi nunca lee nombres: usa la rejilla del mercado.",
     },
   },
   comunio: {
@@ -165,18 +197,13 @@ export function PasteImportPanel({
     if (!file) return;
     setOpen(true);
     setOcrBusy(true);
-    setOcrProgress("Preparando lectura…");
+    setOcrProgress("Calentando en el vestuario…");
     setFeedback(null);
     try {
       const { text: ocrText, confidence } = await recognizeImageText(
         file,
         (info) => {
-          const pct = Math.round(info.progress * 100);
-          setOcrProgress(
-            pct > 0
-              ? `Leyendo captura… ${pct}%`
-              : "Descargando motor OCR (solo la primera vez)…",
-          );
+          setOcrProgress(footballOcrProgress(info.status, info.progress));
         },
       );
       if (!ocrText.trim()) {
@@ -186,13 +213,20 @@ export function PasteImportPanel({
         return;
       }
       setText(ocrText);
+      const parsed = parsePastedPlayers(ocrText);
       const confNote =
         confidence > 0 && confidence < 55
           ? " La confianza es baja: revisa bien antes de importar."
           : "";
-      setFeedback(
-        `Texto leído de la captura (${Math.round(confidence)}% confianza). Revísalo abajo y pulsa “Importar texto”.${confNote}`,
-      );
+      if (parsed.players.length === 0) {
+        setFeedback(
+          `Se leyó texto, pero no reconocí jugadores. Prueba una captura de la lista (con “Vender”/precios), no el cartel de compartir. O usa Compartir → pegar el texto #Biwenger.${confNote}`,
+        );
+      } else {
+        setFeedback(
+          `Texto leído: ~${parsed.players.length} jugador${parsed.players.length === 1 ? "" : "es"} detectables (${Math.round(confidence)}% confianza). Revísalo y pulsa “Importar texto”.${confNote}`,
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -264,7 +298,7 @@ export function PasteImportPanel({
               disabled={ocrBusy}
               onClick={() => fileRef.current?.click()}
             >
-              {ocrBusy ? "Leyendo captura…" : "Elegir captura / foto"}
+              {ocrBusy ? "Ojeando captura…" : "Elegir captura / foto"}
             </Button>
             <Button
               type="button"

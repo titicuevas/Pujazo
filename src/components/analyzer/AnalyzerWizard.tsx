@@ -278,7 +278,7 @@ export function AnalyzerWizard() {
   if (!ready) {
     return (
       <p className="px-4 py-10 text-mist" role="status">
-        Cargando asistente…
+        Calentando en el vestuario…
       </p>
     );
   }

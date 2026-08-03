@@ -88,7 +88,7 @@ export function HistorialClient() {
 
         {!ready ? (
           <p className="text-mist" role="status">
-            Cargando historial…
+            Repasando el acta…
           </p>
         ) : entries.length === 0 ? (
           <Panel>
