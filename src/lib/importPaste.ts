@@ -166,8 +166,8 @@ export function parseBiwengerMobileShare(
 /**
  * Carteles / listados por bloque de posición (compartir SofaScore / plantilla):
  * PORTEROS / DEFENSAS / CENTROCAMPISTAS / DELANTEROS + nombre + valor.
- * El OCR a menudo junta todos los nombres y luego todos los precios:
- * emparejamos en orden (cola) y rellenamos huecos de la sección.
+ * El OCR a menudo desordena: precios antes o después de los nombres.
+ * Colas dobles (nombres ↔ precios) + recorte de “porteros” fantasma si falta DEFENSAS.
  */
 function parsePositionSectionShare(
   text: string,
@@ -175,6 +175,7 @@ function parsePositionSectionShare(
   const hasHeaders =
     /\b(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i.test(text);
   if (!hasHeaders) return null;
+  const hasDefensasHeader = /\bDEFENSAS\b/i.test(text);
 
   const lines = text
     .split("\n")
@@ -186,41 +187,56 @@ function parsePositionSectionShare(
   let skippedLines = 0;
   let currentPos: Position | undefined;
   const pendingNames: string[] = [];
+  const pendingMoneys: number[] = [];
 
   const commit = (name: string, value?: number) => {
-    const key = normalizeName(name);
+    const fixed = repairOcrPlayerName(name);
+    const key = normalizeName(fixed);
     if (seen.has(key)) {
       skippedLines += 1;
       return;
     }
     seen.add(key);
     players.push({
-      name,
+      name: fixed,
       position: currentPos,
       value,
     });
   };
 
-  const flushPendingWithoutValue = () => {
+  /** Empareja colas y cierra la sección. */
+  const settleSection = () => {
+    while (pendingNames.length > 0 && pendingMoneys.length > 0) {
+      commit(pendingNames.shift()!, pendingMoneys.shift()!);
+    }
     while (pendingNames.length > 0) {
       commit(pendingNames.shift()!);
     }
+    // Precios huérfanos de la sección: intentar rellenar jugadores sin valor
+    while (pendingMoneys.length > 0) {
+      const money = pendingMoneys.shift()!;
+      const needy = players.find(
+        (p) => p.position === currentPos && p.value === undefined,
+      );
+      if (needy) needy.value = money;
+      else skippedLines += 1;
+    }
   };
 
-  const assignMoney = (money: number) => {
+  const pushMoney = (money: number) => {
     if (pendingNames.length > 0) {
       commit(pendingNames.shift()!, money);
-      return true;
+      return;
     }
-    // Rellenar el primer jugador de la sección actual sin valor
-    const needy = players.find(
-      (p) => p.position === currentPos && p.value === undefined,
-    );
-    if (needy) {
-      needy.value = money;
-      return true;
+    pendingMoneys.push(money);
+  };
+
+  const pushName = (name: string) => {
+    if (pendingMoneys.length > 0) {
+      commit(name, pendingMoneys.shift()!);
+      return;
     }
-    return false;
+    pendingNames.push(name);
   };
 
   for (const line of lines) {
@@ -228,7 +244,7 @@ function parsePositionSectionShare(
       .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/, "")
       .match(/^(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i);
     if (headerMatch) {
-      flushPendingWithoutValue();
+      settleSection();
       const token = headerMatch[1].toLowerCase();
       currentPos =
         token.startsWith("porter")
@@ -257,7 +273,7 @@ function parsePositionSectionShare(
     if (isMoneyLine(line)) {
       const money = extractMoney(line);
       if (money !== undefined && money >= 50_000) {
-        if (!assignMoney(money)) skippedLines += 1;
+        pushMoney(money);
       } else {
         skippedLines += 1;
       }
@@ -272,24 +288,70 @@ function parsePositionSectionShare(
     // "Batalla 3.650.000 €" / "Adriá Altimira 0" en una línea
     const inline = parseLine(stripTrailingPoints(line));
     if (inline?.name && inline.value !== undefined && inline.value >= 50_000) {
-      flushPendingWithoutValue();
+      settleSection();
       commit(inline.name, inline.value);
       continue;
     }
 
     const nameCandidate = stripTrailingPoints(line);
     if (looksLikePlayerName(nameCandidate)) {
-      pendingNames.push(cleanName(nameCandidate));
+      pushName(cleanName(nameCandidate));
       continue;
     }
 
     skippedLines += 1;
   }
 
-  flushPendingWithoutValue();
+  settleSection();
+  reclassifyGhostGoalkeepers(players, hasDefensasHeader);
 
   if (players.length < 2) return null;
   return { players, skippedLines };
+}
+
+/**
+ * Si el OCR se come “DEFENSAS”, los laterales caen en PORTEROS.
+ * Tras un portero caro, los siguientes más baratos pasan a defensa.
+ */
+function reclassifyGhostGoalkeepers(
+  players: ParsedPastePlayer[],
+  hasDefensasHeader: boolean,
+): void {
+  if (hasDefensasHeader) return;
+  const gks = players.filter((p) => p.position === "portero");
+  if (gks.length <= 2) return;
+  const top = Math.max(...gks.map((p) => p.value ?? 0), 0);
+  if (top < 500_000) return;
+
+  let kept = 0;
+  for (const player of gks) {
+    const value = player.value ?? 0;
+    const looksLikeOutfield =
+      kept >= 1 &&
+      value > 0 &&
+      value < Math.min(top * 0.75, 3_800_000);
+    if (looksLikeOutfield || kept >= 2) {
+      player.position = "defensa";
+    } else {
+      kept += 1;
+    }
+  }
+}
+
+/** Correcciones OCR frecuentes en nombres de LaLiga (solo casos claros). */
+function repairOcrPlayerName(name: string): string {
+  const trimmed = name.trim();
+  const fixes: Array<[RegExp, string]> = [
+    [/^Arda\s+Gill$/i, "Arda Güler"],
+    [/^Arda\s+Guler$/i, "Arda Güler"],
+    [/^Iv[aá]n\s+Rom$/i, "Iván Romero"],
+    [/^De\s*Galarreta$/i, "De Galarreta"],
+    [/^Javier\s+Ri$/i, "Javier Rueda"],
+  ];
+  for (const [pattern, replacement] of fixes) {
+    if (pattern.test(trimmed)) return replacement;
+  }
+  return trimmed;
 }
 
 /** Corrige basura típica de Tesseract en carteles Biwenger/SofaScore. */

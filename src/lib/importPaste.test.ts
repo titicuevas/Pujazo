@@ -408,12 +408,13 @@ Iván Rom
       expect.arrayContaining([
         "Oblak",
         "Adriá Altimira",
-        "Arda Gill",
+        "Arda Güler",
         "Germán Valera",
-        "DeGalarreta",
+        "De Galarreta",
         "Rubén García",
         "Aguado",
-        "Iván Rom",
+        "Iván Romero",
+        "Javier Rueda",
       ]),
     );
     expect(names).not.toEqual(expect.arrayContaining(["Dot", "ra", "Pl"]));
@@ -421,7 +422,15 @@ Iván Rom
       position: "portero",
       value: 4_130_000,
     });
-    expect(result.players.find((p) => p.name === "Arda Gill")).toMatchObject({
+    expect(result.players.find((p) => p.name === "Adriá Altimira")).toMatchObject({
+      position: "defensa",
+      value: 2_450_000,
+    });
+    expect(result.players.find((p) => p.name === "Javier Rueda")).toMatchObject({
+      position: "defensa",
+      value: 2_270_000,
+    });
+    expect(result.players.find((p) => p.name === "Arda Güler")).toMatchObject({
       position: "centrocampista",
       value: 7_300_000,
     });
@@ -429,11 +438,16 @@ Iván Rom
       position: "centrocampista",
       value: 1_780_000,
     });
-    expect(result.players.find((p) => p.name === "Iván Rom")).toMatchObject({
+    expect(result.players.find((p) => p.name === "Iván Romero")).toMatchObject({
       position: "delantero",
-      value: 3_300_000,
+      value: 3_500_000,
     });
     expect(result.players.length).toBeGreaterThanOrEqual(8);
+    expect(
+      result.players.every(
+        (p) => p.value === undefined || p.value >= 50_000,
+      ),
+    ).toBe(true);
   });
 
   it("devuelve tips de fallo por plataforma", () => {
