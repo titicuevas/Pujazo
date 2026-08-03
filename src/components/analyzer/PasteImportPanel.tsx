@@ -146,7 +146,7 @@ export function PasteImportPanel({
       const clip = await navigator.clipboard.readText();
       if (!clip.trim()) {
         setFeedback(
-          "El portapapeles está vacío. Copia en tu fantasy, o usa “Importar con captura”.",
+          "El portapapeles está vacío. Copia en tu fantasy, o usa “Elegir captura / foto”.",
         );
         return;
       }
@@ -237,8 +237,8 @@ export function PasteImportPanel({
                 <span className="font-semibold text-ink">En la app Biwenger:</span>{" "}
                 usa <strong className="text-ink">Compartir</strong> (texto con{" "}
                 <strong className="text-ink">#Biwenger</strong>) y pégalo aquí, o{" "}
-                <strong className="text-ink">Importar con captura</strong> de la
-                lista (no del cartel decorativo).
+                <strong className="text-ink">Elegir captura / foto</strong> desde
+                la galería (lista con precios, no el cartel decorativo).
                 <span className="mt-1 block text-mist">
                   En PC: Ctrl+A / Cmd+A en Plantilla o Mercado → copiar → Pegar
                   del portapapeles.
@@ -264,7 +264,7 @@ export function PasteImportPanel({
               disabled={ocrBusy}
               onClick={() => fileRef.current?.click()}
             >
-              {ocrBusy ? "Leyendo captura…" : "Importar con captura"}
+              {ocrBusy ? "Leyendo captura…" : "Elegir captura / foto"}
             </Button>
             <Button
               type="button"
@@ -303,19 +303,17 @@ export function PasteImportPanel({
             id={fileInputId}
             type="file"
             accept="image/*"
-            capture="environment"
             className="sr-only"
             aria-label={
               kind === "squad"
-                ? "Elegir captura de plantilla"
-                : "Elegir captura de mercado"
+                ? "Elegir captura o foto de plantilla"
+                : "Elegir captura o foto de mercado"
             }
             onChange={(event) => {
               const file = event.target.files?.[0];
               void onImageSelected(file);
             }}
           />
-
           {ocrProgress ? (
             <p role="status" className="text-sm text-mist">
               {ocrProgress}

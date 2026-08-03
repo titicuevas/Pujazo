@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: "Pega plantilla y mercado",
-    text: "Pega texto o usa “Importar con captura” (foto de la app). Revisa lo detectado e importa. Evita capturas borrosas.",
+    text: "Pega texto o elige una captura/foto de la galería. Revisa lo detectado e importa. Evita capturas borrosas.",
   },
   {
     title: "Revisa y genera el plan",
@@ -96,9 +96,9 @@ export default function ComoUsarPage() {
               : completa valores después, o usa captura de la lista con precios.
             </li>
             <li>
-              <strong className="text-ink">Importar con captura</strong> funciona
-              mejor con la lista real (botones Vender/Pujar), no con el cartel
-              decorativo de “compartir imagen”.
+              <strong className="text-ink">Elegir captura / foto</strong> abre la
+              galería o archivos (mejor la lista con precios, no el cartel
+              decorativo).
             </li>
             <li>
               En PC, pegar la plantilla/mercado completo sigue siendo lo más
