@@ -69,10 +69,10 @@ export default function HomePage() {
                 Analizar mi equipo
               </Link>
               <Link
-                href="/#como-funciona"
+                href="/analizar?pegar=1"
                 className="cta-secondary px-5 py-3 text-base"
               >
-                Cómo funciona
+                Empezar pegando plantilla
               </Link>
             </div>
             <p className="mt-3 text-sm text-mist animate-rise-delay-1">
@@ -82,6 +82,13 @@ export default function HomePage() {
                 className="font-semibold text-lime underline-offset-2 hover:underline"
               >
                 Probar con datos de ejemplo
+              </Link>
+              . También puedes{" "}
+              <Link
+                href="/#como-funciona"
+                className="font-semibold text-lime underline-offset-2 hover:underline"
+              >
+                ver cómo funciona
               </Link>
               .
             </p>

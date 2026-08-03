@@ -135,6 +135,22 @@ test.describe("Flujo del analizador", () => {
     await expect(page.getByText(/Comparativa de candidatos/i).first()).toBeVisible();
   });
 
+  test("muestra tip si el pegado no tiene jugadores", async ({ page }) => {
+    await page.goto("/analizar?pegar=1");
+    await expect(
+      page.getByRole("heading", { name: "Plantilla" }),
+    ).toBeVisible();
+
+    await page.getByLabel("Pegar plantilla (recomendado)").fill(`Plantilla
+Mercado
+Noticias
+`);
+    await page.getByRole("button", { name: "Importar pegado" }).click();
+
+    await expect(page.getByRole("status").filter({ hasText: /No se detectaron jugadores/i })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: /Consejo/i })).toBeVisible();
+  });
+
   test("importa plantilla pegada estilo Biwenger", async ({ page }) => {
     await page.goto("/analizar");
 

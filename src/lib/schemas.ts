@@ -182,6 +182,90 @@ export const analysisFormSchema = z
 
 export type AnalysisFormValues = z.infer<typeof analysisFormSchema>;
 
+/** Borrador local: admite plantilla vacía y sin superRefine estricto. */
+export const formDraftSchema = z.object({
+  platform: z.enum(["biwenger", "comunio", "laliga_fantasy", "otro"]),
+  customPlatformName: z.string().optional(),
+  leagueName: z.string().optional(),
+  participants: z.number().int().min(2).max(100),
+  currentPosition: z.number().int().min(1),
+  matchday: z.number().int().min(1).max(50),
+  strategy: z.enum(["seguro", "equilibrado", "agresivo", "especulacion"]),
+  squad: z.array(squadPlayerSchema),
+  balance: z.number(),
+  maxPlayers: z.number().int().min(11).max(40),
+  allowNegativeBalance: z.boolean(),
+  market: z.array(marketPlayerSchema),
+  rules: leagueRulesSchema,
+  analysisType: z.enum([
+    "mercado",
+    "ventas",
+    "alineacion",
+    "capitan",
+    "comparar",
+    "completo",
+  ]),
+  concreteDoubt: z.string().optional(),
+});
+
+const riskSchema = z.enum(["bajo", "medio", "alto"]);
+
+const scoredMarketPlayerSchema = z.object({
+  player: marketPlayerSchema,
+  score: z.number(),
+  reasons: z.array(z.string()),
+  risk: riskSchema,
+  recommendedBid: z.number(),
+  maxBid: z.number(),
+});
+
+export const analysisResultSchema = z.object({
+  summary: z.string(),
+  primaryTarget: scoredMarketPlayerSchema.optional(),
+  alternativeTarget: scoredMarketPlayerSchema.optional(),
+  marketRanking: z.array(scoredMarketPlayerSchema).optional(),
+  recommendedBid: z.number().optional(),
+  maxBid: z.number().optional(),
+  sellRecommendations: z.array(squadPlayerSchema),
+  doNotSell: z.array(squadPlayerSchema),
+  projectedBalance: z.number(),
+  mustSellBeforeBuy: z.boolean(),
+  lineup: z
+    .object({
+      formation: z.enum(["4-4-2", "4-3-3", "3-4-3", "3-5-2", "5-3-2"]),
+      starters: z.array(
+        z.object({
+          position: positionSchema,
+          player: squadPlayerSchema,
+        }),
+      ),
+      bench: z.array(squadPlayerSchema),
+      captain: squadPlayerSchema.optional(),
+      striker: squadPlayerSchema.optional(),
+      reasons: z.array(z.string()),
+    })
+    .optional(),
+  overallRisk: riskSchema,
+  reasons: z.array(z.string()),
+  alternativePlan: z.array(z.string()),
+  missingData: z.array(z.string()),
+  warnings: z.array(z.string()),
+  generatedAt: z.string(),
+});
+
+export const storedAnalysisSnapshotSchema = z.object({
+  result: analysisResultSchema,
+  input: analysisFormSchema,
+});
+
+export const analysisHistoryEntrySchema = z.object({
+  id: z.string().min(1),
+  savedAt: z.string(),
+  title: z.string(),
+  result: analysisResultSchema,
+  input: analysisFormSchema,
+});
+
 export function normalizeName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Controller,
   FormProvider,
@@ -40,6 +40,7 @@ import {
   saveCustomRules,
   saveFormDraft,
   saveLastAnalysis,
+  storageWriteMessage,
 } from "@/lib/storage";
 import { analyzeTeam } from "@/lib/analysis";
 import {
@@ -100,7 +101,9 @@ function scrollToPanelError() {
 
 export function AnalyzerWizard() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
+  const searchParams = useSearchParams();
+  const startPaste = searchParams.get("pegar") === "1";
+  const [step, setStep] = useState(startPaste ? 2 : 0);
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const hydratedRef = useRef(false);
@@ -127,14 +130,25 @@ export function AnalyzerWizard() {
           rules: rules ?? draft.rules,
         });
         setBanner(
-          "Se ha recuperado el último borrador guardado en este dispositivo.",
+          startPaste
+            ? "Borrador recuperado. Pega tu plantilla abajo o sigue editando."
+            : "Se ha recuperado el último borrador guardado en este dispositivo.",
         );
       } else if (rules) {
         setValue("rules", rules);
+        if (startPaste) {
+          setBanner(
+            "Empieza pegando tu plantilla: usa la guía de importación de abajo.",
+          );
+        }
+      } else if (startPaste) {
+        setBanner(
+          "Empieza pegando tu plantilla: usa la guía de importación de abajo.",
+        );
       }
       setReady(true);
     });
-  }, [reset, setValue]);
+  }, [reset, setValue, startPaste]);
 
   const draftValues = useWatch({ control });
 
@@ -234,9 +248,13 @@ export function AnalyzerWizard() {
         },
       };
       const result = analyzeTeam(synced);
-      saveLastAnalysis(result, synced);
+      const saved = saveLastAnalysis(result, synced);
       saveCustomRules(synced.rules);
       saveFormDraft(synced);
+      if (!saved.ok) {
+        const msg = storageWriteMessage(saved);
+        if (msg) window.alert(msg);
+      }
       router.push("/resultado");
     },
     async () => {

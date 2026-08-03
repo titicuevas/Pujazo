@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const syne = Syne({
@@ -18,11 +19,20 @@ const manrope = Manrope({
   fallback: ["Avenir Next", "Segoe UI", "sans-serif"],
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Pujazo — Tu próximo movimiento en fantasy",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Pujazo — Tu próximo movimiento en fantasy",
+    template: "%s · Pujazo",
+  },
   description:
     "Introduce tu equipo, tu saldo, tu mercado y las reglas de tu liga. Pujazo te devuelve un plan claro de fichajes, ventas, pujas y alineación.",
   applicationName: "Pujazo",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Pujazo — Tu próximo movimiento en fantasy",
     description:
@@ -30,9 +40,10 @@ export const metadata: Metadata = {
     locale: "es_ES",
     type: "website",
     siteName: "Pujazo",
+    url: siteUrl,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Pujazo — Tu próximo movimiento en fantasy",
     description:
       "Plan de fichajes, pujas y alineación sin conectar cuentas ni inventar datos en vivo.",

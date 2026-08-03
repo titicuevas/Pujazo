@@ -7,6 +7,7 @@ import {
   clearAllLocalData,
   deleteHistoryEntry,
   loadAnalysisHistory,
+  loadFormDraft,
   loadLastAnalysis,
   restoreHistoryEntry,
   saveLastAnalysis,
@@ -109,5 +110,19 @@ describe("historial de análisis (storage)", () => {
     clearAllLocalData();
     expect(loadLastAnalysis()).toBeNull();
     expect(loadAnalysisHistory()).toHaveLength(0);
+  });
+
+  it("descarta borradores corruptos", () => {
+    localStorage.setItem("pujazo.formDraft.v1", "{no-json");
+    expect(loadFormDraft()).toBeNull();
+    expect(localStorage.getItem("pujazo.formDraft.v1")).toBeNull();
+  });
+
+  it("descarta último análisis inválido", () => {
+    localStorage.setItem(
+      "pujazo.lastAnalysis.v1",
+      JSON.stringify({ result: { summary: "x" }, input: {} }),
+    );
+    expect(loadLastAnalysis()).toBeNull();
   });
 });

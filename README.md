@@ -148,6 +148,8 @@ src/
 - Historial local de planes (hasta 15 en el dispositivo)
 - Guardar PDF / imprimir el plan
 - Pegado mejorado Comunio / LALIGA FANTASY + tips si falla la importación
+- Storage local validado (descarta datos corruptos, avisa si no hay espacio)
+- Páginas de error / 404, SEO básico (OG, robots, sitemap) y CI en GitHub
 
 ## Futuro (opcional)
 

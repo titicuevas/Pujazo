@@ -14,6 +14,9 @@ test.describe("Home", () => {
       page.getByRole("link", { name: "Analizar mi equipo" }).first(),
     ).toBeVisible();
     await expect(
+      page.getByRole("link", { name: "Empezar pegando plantilla" }),
+    ).toBeVisible();
+    await expect(
       page.getByLabel("Aviso de independencia"),
     ).toContainText("herramienta independiente");
   });

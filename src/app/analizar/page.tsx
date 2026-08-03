@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageShell } from "@/components/layout/SiteChrome";
 import { AnalyzerWizard } from "@/components/analyzer/AnalyzerWizard";
 
@@ -8,10 +9,20 @@ export const metadata: Metadata = {
     "Introduce plataforma, plantilla, mercado y reglas. Pujazo genera un plan local de fichajes, pujas, ventas y alineación.",
 };
 
+function AnalizarFallback() {
+  return (
+    <p className="px-4 py-10 text-mist" role="status">
+      Cargando asistente…
+    </p>
+  );
+}
+
 export default function AnalizarPage() {
   return (
     <PageShell compactHeader>
-      <AnalyzerWizard />
+      <Suspense fallback={<AnalizarFallback />}>
+        <AnalyzerWizard />
+      </Suspense>
     </PageShell>
   );
 }

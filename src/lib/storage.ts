@@ -2,9 +2,16 @@ import {
   ANALYSIS_HISTORY_LIMIT,
   STORAGE_KEYS,
 } from "@/lib/constants";
-import type { AnalysisFormValues } from "@/lib/schemas";
+import {
+  analysisHistoryEntrySchema,
+  formDraftSchema,
+  leagueRulesSchema,
+  storedAnalysisSnapshotSchema,
+  type AnalysisFormValues,
+} from "@/lib/schemas";
 import type { AnalysisResult, LeagueRules } from "@/lib/types";
 import { createId } from "@/lib/format";
+import { z } from "zod";
 
 export type AnalysisHistoryEntry = {
   id: string;
@@ -14,24 +21,73 @@ export type AnalysisHistoryEntry = {
   input: AnalysisFormValues;
 };
 
+export type StorageWriteResult =
+  | { ok: true }
+  | { ok: false; reason: "quota" | "unavailable" };
+
 function canUseStorage(): boolean {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
 }
 
-export function saveFormDraft(values: AnalysisFormValues): void {
-  if (!canUseStorage()) return;
-  localStorage.setItem(STORAGE_KEYS.formDraft, JSON.stringify(values));
+function isQuotaError(error: unknown): boolean {
+  return (
+    error instanceof DOMException &&
+    (error.name === "QuotaExceededError" ||
+      error.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+      error.code === 22)
+  );
+}
+
+function setItemSafe(key: string, value: string): StorageWriteResult {
+  if (!canUseStorage()) return { ok: false, reason: "unavailable" };
+  try {
+    localStorage.setItem(key, value);
+    return { ok: true };
+  } catch (error) {
+    if (isQuotaError(error)) return { ok: false, reason: "quota" };
+    return { ok: false, reason: "unavailable" };
+  }
+}
+
+function parseStored<T>(
+  raw: string | null,
+  schema: z.ZodType<T>,
+  removeKey?: string,
+): T | null {
+  if (!raw) return null;
+  try {
+    const parsed = schema.safeParse(JSON.parse(raw));
+    if (parsed.success) return parsed.data;
+  } catch {
+    // JSON inválido
+  }
+  if (removeKey && canUseStorage()) {
+    localStorage.removeItem(removeKey);
+  }
+  return null;
+}
+
+export function storageWriteMessage(result: StorageWriteResult): string | null {
+  if (result.ok) return null;
+  if (result.reason === "quota") {
+    return "No hay espacio suficiente en este dispositivo. Borra el historial o descarga el plan y vuelve a intentar.";
+  }
+  return "No se pudo guardar en este dispositivo.";
+}
+
+export function saveFormDraft(values: AnalysisFormValues): StorageWriteResult {
+  const checked = formDraftSchema.safeParse(values);
+  if (!checked.success) return { ok: false, reason: "unavailable" };
+  return setItemSafe(STORAGE_KEYS.formDraft, JSON.stringify(checked.data));
 }
 
 export function loadFormDraft(): AnalysisFormValues | null {
   if (!canUseStorage()) return null;
-  const raw = localStorage.getItem(STORAGE_KEYS.formDraft);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as AnalysisFormValues;
-  } catch {
-    return null;
-  }
+  return parseStored(
+    localStorage.getItem(STORAGE_KEYS.formDraft),
+    formDraftSchema,
+    STORAGE_KEYS.formDraft,
+  );
 }
 
 export function clearAnalysisSnapshotCache(): void {
@@ -57,25 +113,48 @@ function readHistory(): AnalysisHistoryEntry[] {
   const raw = localStorage.getItem(STORAGE_KEYS.analysisHistory);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw) as AnalysisHistoryEntry[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      localStorage.removeItem(STORAGE_KEYS.analysisHistory);
+      return [];
+    }
+    const entries: AnalysisHistoryEntry[] = [];
+    for (const item of parsed) {
+      const checked = analysisHistoryEntrySchema.safeParse(item);
+      if (checked.success) entries.push(checked.data);
+    }
+    if (entries.length !== parsed.length) {
+      // Limpia entradas corruptas persistiendo solo las válidas
+      void writeHistory(entries);
+    }
+    return entries;
   } catch {
+    localStorage.removeItem(STORAGE_KEYS.analysisHistory);
     return [];
   }
 }
 
-function writeHistory(entries: AnalysisHistoryEntry[]): void {
-  if (!canUseStorage()) return;
-  localStorage.setItem(
-    STORAGE_KEYS.analysisHistory,
-    JSON.stringify(entries.slice(0, ANALYSIS_HISTORY_LIMIT)),
-  );
+function writeHistory(entries: AnalysisHistoryEntry[]): StorageWriteResult {
+  const trimmed = entries.slice(0, ANALYSIS_HISTORY_LIMIT);
+  let payload = JSON.stringify(trimmed);
+  let result = setItemSafe(STORAGE_KEYS.analysisHistory, payload);
+  if (result.ok || result.reason !== "quota") return result;
+
+  // Liberar espacio: ir reduciendo historial
+  for (let size = Math.max(1, Math.floor(trimmed.length / 2)); size >= 1; size = Math.floor(size / 2)) {
+    payload = JSON.stringify(trimmed.slice(0, size));
+    result = setItemSafe(STORAGE_KEYS.analysisHistory, payload);
+    if (result.ok) return result;
+    if (size === 1) break;
+  }
+  localStorage.removeItem(STORAGE_KEYS.analysisHistory);
+  return { ok: false, reason: "quota" };
 }
 
 function pushHistory(
   result: AnalysisResult,
   input: AnalysisFormValues,
-): void {
+): StorageWriteResult {
   const entry: AnalysisHistoryEntry = {
     id: createId("hist"),
     savedAt: result.generatedAt || new Date().toISOString(),
@@ -89,23 +168,42 @@ function pushHistory(
       (item) => item.result.generatedAt !== result.generatedAt,
     ),
   ];
-  writeHistory(next);
+  return writeHistory(next);
 }
 
 export function saveLastAnalysis(
   result: AnalysisResult,
   input: AnalysisFormValues,
   options?: { archive?: boolean },
-): void {
-  if (!canUseStorage()) return;
-  localStorage.setItem(
+): StorageWriteResult {
+  if (!canUseStorage()) return { ok: false, reason: "unavailable" };
+
+  const snapshot = storedAnalysisSnapshotSchema.safeParse({ result, input });
+  if (!snapshot.success) return { ok: false, reason: "unavailable" };
+
+  let write = setItemSafe(
     STORAGE_KEYS.lastAnalysis,
-    JSON.stringify({ result, input }),
+    JSON.stringify(snapshot.data),
   );
+  if (!write.ok && write.reason === "quota") {
+    localStorage.removeItem(STORAGE_KEYS.analysisHistory);
+    write = setItemSafe(
+      STORAGE_KEYS.lastAnalysis,
+      JSON.stringify(snapshot.data),
+    );
+  }
+  if (!write.ok) return write;
+
   if (options?.archive !== false) {
-    pushHistory(result, input);
+    const archived = pushHistory(result, input);
+    if (!archived.ok && archived.reason === "quota") {
+      // El plan actual sí quedó; avisar vía resultado de archive fallido
+      clearAnalysisSnapshotCache();
+      return archived;
+    }
   }
   clearAnalysisSnapshotCache();
+  return { ok: true };
 }
 
 export function loadLastAnalysis(): {
@@ -113,16 +211,11 @@ export function loadLastAnalysis(): {
   input: AnalysisFormValues;
 } | null {
   if (!canUseStorage()) return null;
-  const raw = localStorage.getItem(STORAGE_KEYS.lastAnalysis);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as {
-      result: AnalysisResult;
-      input: AnalysisFormValues;
-    };
-  } catch {
-    return null;
-  }
+  return parseStored(
+    localStorage.getItem(STORAGE_KEYS.lastAnalysis),
+    storedAnalysisSnapshotSchema,
+    STORAGE_KEYS.lastAnalysis,
+  );
 }
 
 export function loadAnalysisHistory(): AnalysisHistoryEntry[] {
@@ -136,12 +229,11 @@ export function loadHistoryEntry(id: string): AnalysisHistoryEntry | null {
 export function restoreHistoryEntry(id: string): boolean {
   const entry = loadHistoryEntry(id);
   if (!entry) return false;
-  saveLastAnalysis(entry.result, entry.input, { archive: false });
-  return true;
+  return saveLastAnalysis(entry.result, entry.input, { archive: false }).ok;
 }
 
 export function deleteHistoryEntry(id: string): void {
-  writeHistory(readHistory().filter((entry) => entry.id !== id));
+  void writeHistory(readHistory().filter((entry) => entry.id !== id));
 }
 
 export function clearAnalysisHistory(): void {
@@ -149,20 +241,19 @@ export function clearAnalysisHistory(): void {
   localStorage.removeItem(STORAGE_KEYS.analysisHistory);
 }
 
-export function saveCustomRules(rules: LeagueRules): void {
-  if (!canUseStorage()) return;
-  localStorage.setItem(STORAGE_KEYS.customRules, JSON.stringify(rules));
+export function saveCustomRules(rules: LeagueRules): StorageWriteResult {
+  const checked = leagueRulesSchema.safeParse(rules);
+  if (!checked.success) return { ok: false, reason: "unavailable" };
+  return setItemSafe(STORAGE_KEYS.customRules, JSON.stringify(checked.data));
 }
 
 export function loadCustomRules(): LeagueRules | null {
   if (!canUseStorage()) return null;
-  const raw = localStorage.getItem(STORAGE_KEYS.customRules);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as LeagueRules;
-  } catch {
-    return null;
-  }
+  return parseStored(
+    localStorage.getItem(STORAGE_KEYS.customRules),
+    leagueRulesSchema,
+    STORAGE_KEYS.customRules,
+  );
 }
 
 export function clearAllLocalData(): void {
