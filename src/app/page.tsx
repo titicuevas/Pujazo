@@ -61,6 +61,16 @@ export default function HomePage() {
               Pujazo te devuelve un plan claro de fichajes, ventas, pujas y
               alineación — sin conectar cuentas ni inventar datos en vivo.
             </p>
+            <p className="mt-2 text-sm text-mist">
+              Gratis y local en tu dispositivo.{" "}
+              <Link
+                href="/precios"
+                className="font-semibold text-lime underline-offset-2 hover:underline"
+              >
+                Ver modelo gratuito y futuro
+              </Link>
+              .
+            </p>
             <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap animate-rise-delay-1">
               <Link
                 href="/analizar"

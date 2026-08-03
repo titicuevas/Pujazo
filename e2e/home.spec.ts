@@ -23,11 +23,14 @@ test.describe("Home", () => {
       page.getByRole("contentinfo").getByRole("link", { name: "Cómo usar" }),
     ).toBeVisible();
     await expect(
+      page.getByRole("contentinfo").getByRole("link", { name: "Gratis / futuro" }),
+    ).toBeVisible();
+    await expect(
       page.getByLabel("Aviso de independencia"),
     ).toContainText("herramienta independiente");
   });
 
-  test("páginas de cómo usar y privacidad cargan en español", async ({
+  test("páginas de cómo usar, privacidad y precios cargan en español", async ({
     page,
   }) => {
     await page.goto("/como-usar");
@@ -37,6 +40,11 @@ test.describe("Home", () => {
     await page.goto("/privacidad");
     await expect(page.getByRole("heading", { name: "Privacidad" })).toBeVisible();
     await expect(page.getByText(/localStorage/i)).toBeVisible();
+    await page.goto("/precios");
+    await expect(
+      page.getByRole("heading", { name: /Gratis ahora/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/Plan gratuito \(actual\)/i)).toBeVisible();
   });
 
   test("el enlace de saltar al contenido existe para teclado", async ({

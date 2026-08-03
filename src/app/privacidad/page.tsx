@@ -78,10 +78,26 @@ export default function PrivacidadPage() {
           <p>{INDEPENDENCE_NOTICE}</p>
         </section>
 
+        <section className="mt-8 space-y-3 text-sm leading-relaxed text-foam">
+          <h2 className="font-display text-xl font-semibold text-ink">
+            Si en el futuro hay cuentas o pago
+          </h2>
+          <p>
+            El uso gratuito local seguirá siendo la base. Cualquier sync, IA u
+            otro extra de pago será opcional y se explicará antes de pedir
+            cuenta o enviar datos fuera de tu dispositivo. Más detalle en{" "}
+            <Link
+              href="/precios"
+              className="font-semibold text-lime underline-offset-2 hover:underline"
+            >
+              Gratis / futuro
+            </Link>
+            .
+          </p>
+        </section>
+
         <p className="mt-8 text-xs text-mist">
-          Última actualización: agosto 2026. Si en el futuro ofrecemos sync o
-          funciones de pago, lo explicaremos con claridad antes de pedir datos
-          o cuentas.
+          Última actualización: agosto 2026.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">

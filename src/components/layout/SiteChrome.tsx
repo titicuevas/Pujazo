@@ -86,6 +86,12 @@ function SiteFooter() {
             Cómo usar
           </Link>
           <Link
+            href="/precios"
+            className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            Gratis / futuro
+          </Link>
+          <Link
             href="/privacidad"
             className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
           >

@@ -89,6 +89,9 @@ export default function ComoUsarPage() {
           <Link href="/privacidad" className="cta-secondary px-4 py-2.5 text-sm">
             Privacidad
           </Link>
+          <Link href="/precios" className="cta-secondary px-4 py-2.5 text-sm">
+            Gratis / futuro
+          </Link>
         </div>
       </article>
     </PageShell>

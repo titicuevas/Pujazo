@@ -150,12 +150,14 @@ src/
 - Pegado mejorado Comunio / LALIGA FANTASY + tips si falla la importación
 - Storage local validado (descarta datos corruptos, avisa si no hay espacio)
 - Páginas de error / 404, SEO básico (OG, robots, sitemap) y CI en GitHub
-- Guías públicas: Cómo usar y Privacidad (datos solo en el dispositivo)
+- Guías públicas: Cómo usar, Privacidad y modelo gratis/futuro (freemium transparente)
 
 ## Futuro (opcional)
 
+- Sync multi-dispositivo con cuenta (plan de pago)
 - Conector extensión del navegador (solo con consentimiento; sin subir datos)
 - Capa de IA opcional y transparente (nunca opaca; sin filtrar datos sin aviso)
+- Pagos (p. ej. Stripe) solo para extras; el núcleo local sigue gratis
 
 ## Despliegue en Vercel
 
