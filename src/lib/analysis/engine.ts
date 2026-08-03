@@ -199,6 +199,17 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     reasons.push(
       `Ranking local de ${Math.min(scored.length, 5)} candidatos según tu estrategia ${strategyLabel(normalized.strategy)}.`,
     );
+  } else if (
+    (normalized.analysisType === "completo" ||
+      normalized.analysisType === "mercado") &&
+    scored.length > 1
+  ) {
+    reasons.push(
+      `Top ${Math.min(scored.length, 3)} fichajes: ${scored
+        .slice(0, 3)
+        .map((s) => s.player.name)
+        .join(", ")}.`,
+    );
   }
 
   const alternativePlan: string[] = [];
@@ -206,6 +217,12 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     for (const [index, item] of scored.slice(0, 5).entries()) {
       alternativePlan.push(
         `${index + 1}. ${item.player.name}: score ${item.score}, puja ~${item.recommendedBid.toLocaleString("es-ES")} €, riesgo ${item.risk}.`,
+      );
+    }
+  } else if (marketRanking && marketRanking.length > 1) {
+    for (const [index, item] of marketRanking.entries()) {
+      alternativePlan.push(
+        `${index + 1}. ${item.player.name}: puja ~${item.recommendedBid.toLocaleString("es-ES")} € (máx. ${item.maxBid.toLocaleString("es-ES")} €).`,
       );
     }
   } else if (alternative) {

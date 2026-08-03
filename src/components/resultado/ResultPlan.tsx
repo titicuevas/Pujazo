@@ -292,58 +292,56 @@ function MarketRankingPanel({
 }: {
   ranking: NonNullable<AnalysisResult["marketRanking"]>;
 }) {
+  const title =
+    ranking.length <= 3
+      ? `Top ${ranking.length} fichajes`
+      : "Comparativa de candidatos";
+
   return (
     <Panel>
-      <h2 className="font-display text-xl font-semibold text-lime">
-        Comparativa de candidatos
-      </h2>
+      <h2 className="font-display text-xl font-semibold text-lime">{title}</h2>
       <p className="mt-1 text-sm text-mist">
-        Ordenados por puntuación local según tu estrategia, cupo y saldo.
+        Ordenados por tu estrategia, cupo y saldo. El nº 1 es el fichaje
+        prioritario; 2 y 3 son alternativas reales si se te escapa.
       </p>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-[var(--line)] text-xs uppercase tracking-wide text-mist">
-              <th className="py-2 pr-3 font-medium">#</th>
-              <th className="py-2 pr-3 font-medium">Jugador</th>
-              <th className="py-2 pr-3 font-medium">Score</th>
-              <th className="py-2 pr-3 font-medium">Puja</th>
-              <th className="py-2 pr-3 font-medium">Máx.</th>
-              <th className="py-2 font-medium">Riesgo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ranking.map((item, index) => (
-              <tr
-                key={item.player.id}
-                className="border-b border-[var(--line)]/60 last:border-0"
-              >
-                <td className="py-2.5 pr-3 text-mist">{index + 1}</td>
-                <td className="py-2.5 pr-3">
+
+      <ol className="mt-4 space-y-3">
+        {ranking.map((item, index) => (
+          <li
+            key={item.player.id}
+            className="rounded-lg border border-[var(--line)] bg-pitch-950/40 px-3 py-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-lime">
+                  #{index + 1}
+                  {index === 0 ? " · prioritario" : null}
+                </p>
+                <p className="mt-1 text-lg font-semibold text-ink">
+                  {item.player.name}{" "}
+                  <span className="text-sm font-normal text-mist">
+                    · {positionLabel(item.player.position)}
+                  </span>
+                </p>
+                <p className="mt-1 text-sm text-foam">
+                  Puja{" "}
                   <span className="font-semibold text-ink">
-                    {item.player.name}
+                    {formatMoney(item.recommendedBid)}
                   </span>
-                  <span className="mt-0.5 block text-xs text-mist">
-                    {positionLabel(item.player.position)}
+                  {" · "}
+                  máx.{" "}
+                  <span className="font-semibold text-ink">
+                    {formatMoney(item.maxBid)}
                   </span>
-                </td>
-                <td className="py-2.5 pr-3 font-semibold text-lime">
-                  {item.score}
-                </td>
-                <td className="py-2.5 pr-3 text-foam">
-                  {formatMoney(item.recommendedBid)}
-                </td>
-                <td className="py-2.5 pr-3 text-foam">
-                  {formatMoney(item.maxBid)}
-                </td>
-                <td className="py-2.5">
-                  <RiskBadge level={item.risk} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  {" · "}
+                  score {item.score}
+                </p>
+              </div>
+              <RiskBadge level={item.risk} />
+            </div>
+          </li>
+        ))}
+      </ol>
     </Panel>
   );
 }

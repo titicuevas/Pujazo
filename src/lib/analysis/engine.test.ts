@@ -209,6 +209,9 @@ describe("reglas personalizadas y demo", () => {
       result.sellRecommendations.every((p) => !p.doNotSell),
     ).toBe(true);
     expect(result.summary).toContain("Equilibrado");
+    expect(result.marketRanking?.length).toBeGreaterThan(1);
+    expect(result.marketRanking?.length).toBeLessThanOrEqual(3);
+    expect(result.reasons.some((r) => /Top \d+ fichajes/i.test(r))).toBe(true);
   });
 
   it("en modo comparar genera ranking de candidatos", () => {

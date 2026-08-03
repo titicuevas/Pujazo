@@ -68,6 +68,9 @@ test.describe("Flujo del analizador", () => {
     await expect(page.getByText(/Ariete:/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "En una frase" })).toBeVisible();
     await expect(
+      page.getByRole("heading", { name: /Top \d+ fichajes/i }),
+    ).toBeVisible();
+    await expect(
       page.getByRole("button", { name: "Guardar PDF / Imprimir" }),
     ).toBeVisible();
   });
@@ -129,10 +132,11 @@ test.describe("Flujo del analizador", () => {
     await page.waitForURL("**/resultado");
 
     await expect(
-      page.getByRole("heading", { name: "Comparativa de candidatos" }),
+      page.getByRole("heading", { name: /Comparativa de candidatos|Top \d+ fichajes/i }),
     ).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Score" })).toBeVisible();
-    await expect(page.getByText(/Comparativa de candidatos/i).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Score" })).toHaveCount(0);
+    await expect(page.getByText(/#1/i).first()).toBeVisible();
+    await expect(page.getByText(/Comparativa de candidatos|Top \d+ fichajes/i).first()).toBeVisible();
   });
 
   test("muestra tip si el pegado no tiene jugadores", async ({ page }) => {
@@ -141,11 +145,11 @@ test.describe("Flujo del analizador", () => {
       page.getByRole("heading", { name: "Plantilla" }),
     ).toBeVisible();
 
-    await page.getByLabel("Pegar plantilla (recomendado)").fill(`Plantilla
+    await page.getByLabel("Importar plantilla").fill(`Plantilla
 Mercado
 Noticias
 `);
-    await page.getByRole("button", { name: "Importar pegado" }).click();
+    await page.getByRole("button", { name: "Importar texto" }).click();
 
     await expect(page.getByRole("status").filter({ hasText: /No se detectaron jugadores/i })).toBeVisible();
     await expect(page.getByRole("status").filter({ hasText: /Consejo/i })).toBeVisible();
@@ -161,13 +165,13 @@ Noticias
 
     await expect(page.getByRole("heading", { name: "Plantilla" })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Importar pegado" }),
+      page.getByRole("button", { name: "Importar texto" }),
     ).toBeVisible();
 
     await page
-      .getByLabel("Pegar plantilla (recomendado)")
+      .getByLabel("Importar plantilla")
       .fill(BIWENGER_SQUAD_PASTE);
-    await page.getByRole("button", { name: "Importar pegado" }).click();
+    await page.getByRole("button", { name: "Importar texto" }).click();
 
     await expect(page.getByText(/Importados 3 jugadores/i)).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Nombre" }).nth(0)).toHaveValue(

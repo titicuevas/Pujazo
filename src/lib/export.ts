@@ -1,5 +1,56 @@
-import type { AnalysisResult } from "@/lib/types";
+import type { AnalysisResult, LeagueRules } from "@/lib/types";
 import { formatMoney } from "@/lib/format";
+
+export function leagueRulesToPlainText(
+  rules: LeagueRules,
+  options?: { platformLabel?: string; leagueName?: string },
+): string {
+  const yesNo = (value: boolean) => (value ? "Sí" : "No");
+  const lines: string[] = [
+    "PUJAZO — Reglas de la liga",
+    options?.leagueName?.trim()
+      ? `Liga: ${options.leagueName.trim()}`
+      : undefined,
+    options?.platformLabel
+      ? `Plataforma: ${options.platformLabel}`
+      : undefined,
+    "",
+    "NÚMEROS",
+    `Máximo de jugadores: ${rules.maxPlayers}`,
+    `Dinero por punto: ${formatMoney(rules.moneyPerPoint)}`,
+    `Premio MVP de partido: ${formatMoney(rules.matchMvpBonus)}`,
+    `Premio MVP de jornada: ${formatMoney(rules.matchdayMvpBonus)}`,
+    `Cambios durante la jornada: ${rules.matchdayChanges}`,
+    `Multiplicador del capitán: ${rules.captainMultiplier}`,
+    `Bonificación del ariete: ${rules.strikerBonus}`,
+    `Bonificación máxima ariete/partido: ${rules.strikerMaxBonusPerMatch}`,
+    `Máx. jornadas de cesión: ${rules.maxLoanMatchdays}`,
+    "",
+    "OPCIONES",
+    `Capitán activado: ${yesNo(rules.captainEnabled)}`,
+    `Capitán duplica también negativos: ${yesNo(rules.captainDoublesNegatives)}`,
+    `Ariete activado: ${yesNo(rules.strikerEnabled)}`,
+    `Jugadores multifunción: ${yesNo(rules.multifunctionalPlayers)}`,
+    `Cláusulas activadas: ${yesNo(rules.clausesEnabled)}`,
+    `Cláusulas irreversibles: ${yesNo(rules.clausesIrreversible)}`,
+    `Cesiones permitidas: ${yesNo(rules.loansAllowed)}`,
+    `Ventas entre participantes: ${yesNo(rules.salesBetweenParticipants)}`,
+    `Venta solo si está en el mercado: ${yesNo(rules.saleOnlyWhenOnMarket)}`,
+  ].filter((line): line is string => line !== undefined);
+
+  if (rules.additionalRules.trim()) {
+    lines.push("", "REGLAS ADICIONALES", rules.additionalRules.trim());
+  }
+  if (rules.privateNotes.trim()) {
+    lines.push("", "NOTAS PRIVADAS", rules.privateNotes.trim());
+  }
+
+  lines.push(
+    "",
+    "— Generado con Pujazo (local). Ajusta lo que no coincida con tu comunidad.",
+  );
+  return lines.join("\n");
+}
 
 export function analysisToPlainText(result: AnalysisResult): string {
   const lines: string[] = [
@@ -36,7 +87,7 @@ export function analysisToPlainText(result: AnalysisResult): string {
   }
 
   if (result.marketRanking?.length) {
-    lines.push("", "COMPARATIVA DE CANDIDATOS");
+    lines.push("", "TOP FICHAJES");
     result.marketRanking.forEach((item, index) => {
       lines.push(
         `${index + 1}. ${item.player.name} · score ${item.score} · puja ${formatMoney(item.recommendedBid)} · máx ${formatMoney(item.maxBid)} · riesgo ${item.risk}`,

@@ -209,3 +209,7 @@ Yamal
 -39.100 €
 Saldo
 `;
+
+/** Texto real al “Compartir” el mercado desde la app Biwenger (móvil). */
+export const CHACHOS_MERCADO_SHARE =
+  "El mercado de hoy en mi liga #Biwenger: De Frutos, Pépé, Carmona, Aimar Oroz, Pathé Ciss, Sow, Ramón Enríquez, Peque, Marc Aguado, Javier Rueda, Nsongo, Buchanan, Freeman, Calero, Jonny Castro, Laporte, Lemar, Lo Celso, Víctor García, Logan Costa, Pablo Ramón, Angel Ortiz, Affengruber, Bisiwu, Selu Diallo, Kita, Brahim";

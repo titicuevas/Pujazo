@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: "Pega plantilla y mercado",
-    text: "En tu fantasy: selecciona todo → copiar. En Pujazo: Pegar del portapapeles → Importar. Evita capturas: el texto funciona mejor.",
+    text: "Pega texto o usa “Importar con captura” (foto de la app). Revisa lo detectado e importa. Evita capturas borrosas.",
   },
   {
     title: "Revisa y genera el plan",
@@ -75,6 +75,34 @@ export default function ComoUsarPage() {
             <li>
               Si falla la importación, Pujazo te muestra un consejo concreto
               según la plataforma.
+            </li>
+          </ul>
+        </section>
+
+        <section className="mt-10 border-t border-[var(--line)] pt-8">
+          <h2 className="font-display text-xl font-semibold text-ink">
+            ¿No puedes copiar desde el móvil?
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-foam">
+            En Biwenger la vía más fácil es{" "}
+            <strong className="text-ink">Compartir</strong> el mercado o la
+            plantilla: te genera un texto con{" "}
+            <strong className="text-ink">#Biwenger</strong> y los nombres. Pégalo
+            en Pujazo.
+          </p>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-foam">
+            <li>
+              Ese share suele traer <strong className="text-ink">solo nombres</strong>
+              : completa valores después, o usa captura de la lista con precios.
+            </li>
+            <li>
+              <strong className="text-ink">Importar con captura</strong> funciona
+              mejor con la lista real (botones Vender/Pujar), no con el cartel
+              decorativo de “compartir imagen”.
+            </li>
+            <li>
+              En PC, pegar la plantilla/mercado completo sigue siendo lo más
+              fiable.
             </li>
           </ul>
         </section>

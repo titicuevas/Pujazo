@@ -44,6 +44,11 @@ import {
 } from "@/lib/storage";
 import { analyzeTeam } from "@/lib/analysis";
 import {
+  copyText,
+  downloadTextFile,
+  leagueRulesToPlainText,
+} from "@/lib/export";
+import {
   Button,
   Field,
   Panel,
@@ -920,8 +925,9 @@ function StepBudget() {
 
       {fields.length === 0 ? (
         <p className="rounded-md border border-dashed border-[var(--line)] bg-pitch-950/30 px-3 py-4 text-sm text-mist">
-          Sin candidatos todavía. Pega el mercado arriba o añade jugadores que
-          estés mirando para recibir pujas y fichajes prioritarios.
+          Sin candidatos todavía. Pega el mercado (mejor desde el navegador) o
+          añade a mano 3–5 jugadores que estés mirando: con eso Pujazo ya te da
+          un top de fichajes y pujas.
         </p>
       ) : null}
 
@@ -1049,10 +1055,52 @@ function StepRules({
   const {
     register,
     watch,
+    getValues,
     formState: { errors },
   } = useFormContext<AnalysisFormValues>();
   const maxPlayers = watch("maxPlayers");
   const platform = watch("platform");
+  const [rulesStatus, setRulesStatus] = useState<string | null>(null);
+
+  async function copyCurrentRules() {
+    const values = getValues();
+    const platformLabel =
+      PLATFORM_OPTIONS.find((p) => p.id === values.platform)?.label ??
+      values.platform;
+    const text = leagueRulesToPlainText(
+      { ...values.rules, maxPlayers: values.maxPlayers || values.rules.maxPlayers },
+      {
+        platformLabel,
+        leagueName: values.leagueName,
+      },
+    );
+    const ok = await copyText(text);
+    setRulesStatus(
+      ok
+        ? "Reglas copiadas al portapapeles. Puedes pegarlas en un chat o documento."
+        : "No se pudo copiar. Prueba «Descargar reglas» o selecciona el texto a mano.",
+    );
+  }
+
+  function downloadCurrentRules() {
+    const values = getValues();
+    const platformLabel =
+      PLATFORM_OPTIONS.find((p) => p.id === values.platform)?.label ??
+      values.platform;
+    const text = leagueRulesToPlainText(
+      { ...values.rules, maxPlayers: values.maxPlayers || values.rules.maxPlayers },
+      {
+        platformLabel,
+        leagueName: values.leagueName,
+      },
+    );
+    const slug = (values.leagueName || platformLabel || "liga")
+      .toLowerCase()
+      .replace(/[^a-z0-9áéíóúñ]+/gi, "-")
+      .replace(/^-|-$/g, "");
+    downloadTextFile(`pujazo-reglas-${slug || "liga"}.txt`, text);
+    setRulesStatus("Archivo de reglas descargado.");
+  }
 
   return (
     <div className="space-y-5">
@@ -1063,9 +1111,27 @@ function StepRules({
           </h2>
           <p className="mt-1 text-sm text-mist">
             Empieza con un preset de plataforma y ajústalo a tu comunidad.
+            Luego puedes copiarlas para compartirlas.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="secondary" onClick={() => void copyCurrentRules()}>
+            Copiar reglas
+          </Button>
+          <Button type="button" variant="ghost" onClick={downloadCurrentRules}>
+            Descargar .txt
+          </Button>
+        </div>
       </div>
+
+      {rulesStatus ? (
+        <p
+          role="status"
+          className="rounded-md border border-lime/30 bg-lime/10 px-3 py-2 text-sm text-foam"
+        >
+          {rulesStatus}
+        </p>
+      ) : null}
 
       <div className="rounded-lg border border-[var(--line)] bg-pitch-950/40 p-3">
         <p className="text-sm font-semibold text-ink">Presets por plataforma</p>

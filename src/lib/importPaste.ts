@@ -66,7 +66,7 @@ const CLUB_OR_UI_LINE =
 
 /**
  * Interpreta texto pegado desde Biwenger, Comunio, LALIGA FANTASY u otra
- * (Ctrl+A / Ctrl+C). Prioriza tarjetas Biwenger y luego bloques Comunio/LF.
+ * (Ctrl+A / Ctrl+C, o “Compartir” en la app móvil).
  */
 export function parsePastedPlayers(raw: string): PasteParseResult {
   const warnings: string[] = [];
@@ -80,10 +80,25 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
     };
   }
 
+  // Share móvil Biwenger: "El mercado de hoy… #Biwenger: A, B, C"
+  const mobileShare = parseBiwengerMobileShare(text);
+  if (mobileShare && mobileShare.players.length > 0) {
+    warnings.push(
+      "Detectado el texto de “Compartir” de Biwenger (solo nombres). Completa valores a mano o importa también una captura de la lista con precios.",
+    );
+    return finalize(mobileShare.players, mobileShare.skippedLines, warnings, {});
+  }
+
   text = trimToUsefulSection(text);
 
   // Meta (saldo) desde el pegado completo: a veces va en cabecera/pie
   const meta = extractPasteMeta(raw.replace(/\r\n/g, "\n"));
+
+  const sections = parsePositionSectionShare(text);
+  if (sections && sections.players.length > 0) {
+    return finalize(sections.players, sections.skippedLines, warnings, meta);
+  }
+
   const biwenger = parseBiwengerCards(text);
   if (biwenger && biwenger.players.length > 0) {
     return finalize(biwenger.players, biwenger.skippedLines, warnings, meta);
@@ -101,6 +116,153 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
 
   const [players, skippedLines] = parseLineByLine(text);
   return finalize(players, skippedLines, warnings, meta);
+}
+
+/**
+ * Texto al compartir desde la app Biwenger, p. ej.:
+ * "El mercado de hoy en mi liga #Biwenger: De Frutos, Pépé, Carmona, …"
+ */
+export function parseBiwengerMobileShare(
+  raw: string,
+): { players: ParsedPastePlayer[]; skippedLines: number } | null {
+  const text = raw.replace(/\r\n/g, "\n").trim();
+  const match = text.match(
+    /#\s*Biwenger\s*:\s*([^\n]+)/i,
+  );
+  if (!match?.[1]) return null;
+
+  const list = match[1].trim();
+  // Evitar falsos positivos si tras ":" no hay lista de nombres
+  if (!list.includes(",") && list.split(/\s+/).length > 6) return null;
+
+  const parts = list
+    .split(/[,;]+/)
+    .map((part) => cleanName(part))
+    .filter(Boolean);
+
+  const players: ParsedPastePlayer[] = [];
+  const seen = new Set<string>();
+  let skippedLines = 0;
+
+  for (const name of parts) {
+    if (!looksLikePlayerName(name)) {
+      skippedLines += 1;
+      continue;
+    }
+    const key = normalizeName(name);
+    if (seen.has(key)) {
+      skippedLines += 1;
+      continue;
+    }
+    seen.add(key);
+    players.push({ name });
+  }
+
+  if (players.length < 2) return null;
+  return { players, skippedLines };
+}
+
+/**
+ * Carteles / listados por bloque de posición (compartir SofaScore / plantilla):
+ * PORTEROS / DEFENSAS / CENTROCAMPISTAS / DELANTEROS + nombre + valor.
+ */
+function parsePositionSectionShare(
+  text: string,
+): { players: ParsedPastePlayer[]; skippedLines: number } | null {
+  const hasHeaders =
+    /\b(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i.test(text);
+  if (!hasHeaders) return null;
+
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const players: ParsedPastePlayer[] = [];
+  const seen = new Set<string>();
+  let skippedLines = 0;
+  let currentPos: Position | undefined;
+  let pendingName: string | null = null;
+
+  const commit = (name: string, value?: number) => {
+    const key = normalizeName(name);
+    if (seen.has(key)) {
+      skippedLines += 1;
+      return;
+    }
+    seen.add(key);
+    players.push({
+      name,
+      position: currentPos,
+      value,
+    });
+  };
+
+  for (const line of lines) {
+    const header = line.match(
+      /^(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i,
+    );
+    if (header) {
+      const token = header[1].toLowerCase();
+      currentPos =
+        token.startsWith("porter")
+          ? "portero"
+          : token.startsWith("defens")
+            ? "defensa"
+            : token.startsWith("centro")
+              ? "centrocampista"
+              : "delantero";
+      pendingName = null;
+      continue;
+    }
+
+    if (
+      NOISE_LINE.test(line) ||
+      /^(plantilla|mercado|sofascore|as biwenger|henry)\b/i.test(line)
+    ) {
+      skippedLines += 1;
+      continue;
+    }
+
+    if (/^\d+$/.test(line)) {
+      // puntos "0" entre nombre y valor
+      continue;
+    }
+
+    if (isMoneyLine(line)) {
+      const money = extractMoney(line);
+      if (pendingName && money !== undefined && money >= 0) {
+        commit(pendingName, money);
+        pendingName = null;
+      } else {
+        skippedLines += 1;
+      }
+      continue;
+    }
+
+    // "Batalla 3.650.000 €" en una línea
+    const inline = parseLine(line);
+    if (inline?.name && inline.value !== undefined) {
+      commit(inline.name, inline.value);
+      pendingName = null;
+      continue;
+    }
+
+    if (looksLikePlayerName(line)) {
+      if (pendingName) {
+        commit(pendingName);
+      }
+      pendingName = cleanName(line);
+      continue;
+    }
+
+    skippedLines += 1;
+  }
+
+  if (pendingName) commit(pendingName);
+
+  if (players.length < 2) return null;
+  return { players, skippedLines };
 }
 
 function finalize(
@@ -695,9 +857,9 @@ export function getPasteFailureHint(
   const hints: Record<PlatformId, Record<"squad" | "market", string>> = {
     biwenger: {
       squad:
-        "Consejo Biwenger: Equipo → Plantilla (no Alineación). El texto debería incluir “Vender” y valores con €.",
+        "Consejo Biwenger: Equipo → Plantilla, o Comparte desde la app. Si pegas el share, completa valores; si usas captura, elige la lista con “Vender”, no el cartel.",
       market:
-        "Consejo Biwenger: abre Mercado (venta/puja), no “Todos los jugadores”. Copia la cuadrícula con “Pujar”.",
+        "Consejo Biwenger: en la app, Mercado → Compartir y pega el texto #Biwenger. Luego rellena precios o captura la rejilla del mercado.",
     },
     comunio: {
       squad:

@@ -307,6 +307,61 @@ Valor alineado
     expect(result.players.some((p) => p.name === "Lookman")).toBe(true);
   });
 
+  it("importa el texto de Compartir mercado de la app Biwenger", () => {
+    const raw =
+      "El mercado de hoy en mi liga #Biwenger: De Frutos, Pépé, Carmona, Aimar Oroz, Pathé Ciss, Sow, Ramón Enríquez, Peque, Marc Aguado, Javier Rueda, Nsongo, Buchanan, Freeman, Calero, Jonny Castro, Laporte, Lemar, Lo Celso, Víctor García, Logan Costa, Pablo Ramón, Angel Ortiz, Affengruber, Bisiwu, Selu Diallo, Kita, Brahim";
+    const result = parsePastedPlayers(raw);
+    expect(result.players.length).toBe(27);
+    expect(result.players.map((p) => p.name)).toEqual(
+      expect.arrayContaining([
+        "De Frutos",
+        "Pépé",
+        "Laporte",
+        "Lo Celso",
+        "Brahim",
+        "Pathé Ciss",
+      ]),
+    );
+    expect(result.players.every((p) => p.value === undefined)).toBe(true);
+    expect(result.warnings.join(" ")).toMatch(/Compartir/i);
+  });
+
+  it("parsea listados por bloques PORTEROS/DEFENSAS (cartel SofaScore)", () => {
+    const raw = `
+PLANTILLA
+HENRY · CHACHOS F.C · SOFASCORE
+PORTEROS
+Batalla
+0
+3.650.000 €
+Aitor Fernández
+0
+200.000 €
+DEFENSAS
+Huijsen
+0
+4.320.000 €
+DELANTEROS
+Lookman
+0
+7.960.000 €
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.players).toHaveLength(4);
+    expect(result.players.find((p) => p.name === "Batalla")).toMatchObject({
+      position: "portero",
+      value: 3_650_000,
+    });
+    expect(result.players.find((p) => p.name === "Huijsen")).toMatchObject({
+      position: "defensa",
+      value: 4_320_000,
+    });
+    expect(result.players.find((p) => p.name === "Lookman")).toMatchObject({
+      position: "delantero",
+      value: 7_960_000,
+    });
+  });
+
   it("devuelve tips de fallo por plataforma", () => {
     expect(getPasteFailureHint("biwenger", "squad")).toMatch(/Plantilla/i);
     expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);
