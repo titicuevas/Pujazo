@@ -362,6 +362,80 @@ Lookman
     });
   });
 
+  it("recupera OCR ruidoso de cartel (nombres juntos y valores después)", () => {
+    const raw = `
+PLANTILLA
+BIWENGER
+DIEGO CORTES GONZALEZ - CHACHOS F.C - SOFASCORE
+s
+PORTEROS
+ra
+Oblak
+4.130.000 €
+Pl
+8 $3 9
+2.450.000 €
+2270000 €
+Adriá Altimira 0
+Javier Ri
+—_—
+'CENTROCAMPISTAS
+Arda Gill
+Germán Valera 0
+DeGalarreta 0
+Amatueci 0
+Rubén García 0
+Dot
+Aguado 0
+7.300.000 €
+5.950.000 €
+3.140.000 €
+2.850.000 €
+000€
+1:790/000 €
+1.780.000 €
+DELANTEROS
+3.500.000 €
+ta 0
+Iván Rom
+3.300.000 €
+370.000 €
+`;
+    const result = parsePastedPlayers(raw);
+    const names = result.players.map((p) => p.name);
+
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "Oblak",
+        "Adriá Altimira",
+        "Arda Gill",
+        "Germán Valera",
+        "DeGalarreta",
+        "Rubén García",
+        "Aguado",
+        "Iván Rom",
+      ]),
+    );
+    expect(names).not.toEqual(expect.arrayContaining(["Dot", "ra", "Pl"]));
+    expect(result.players.find((p) => p.name === "Oblak")).toMatchObject({
+      position: "portero",
+      value: 4_130_000,
+    });
+    expect(result.players.find((p) => p.name === "Arda Gill")).toMatchObject({
+      position: "centrocampista",
+      value: 7_300_000,
+    });
+    expect(result.players.find((p) => p.name === "Aguado")).toMatchObject({
+      position: "centrocampista",
+      value: 1_780_000,
+    });
+    expect(result.players.find((p) => p.name === "Iván Rom")).toMatchObject({
+      position: "delantero",
+      value: 3_300_000,
+    });
+    expect(result.players.length).toBeGreaterThanOrEqual(8);
+  });
+
   it("devuelve tips de fallo por plataforma", () => {
     expect(getPasteFailureHint("biwenger", "squad")).toMatch(/Plantilla/i);
     expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);

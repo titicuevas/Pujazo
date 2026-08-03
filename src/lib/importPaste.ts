@@ -90,6 +90,7 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
   }
 
   text = trimToUsefulSection(text);
+  text = normalizeOcrFantasyText(text);
 
   // Meta (saldo) desde el pegado completo: a veces va en cabecera/pie
   const meta = extractPasteMeta(raw.replace(/\r\n/g, "\n"));
@@ -165,6 +166,8 @@ export function parseBiwengerMobileShare(
 /**
  * Carteles / listados por bloque de posición (compartir SofaScore / plantilla):
  * PORTEROS / DEFENSAS / CENTROCAMPISTAS / DELANTEROS + nombre + valor.
+ * El OCR a menudo junta todos los nombres y luego todos los precios:
+ * emparejamos en orden (cola) y rellenamos huecos de la sección.
  */
 function parsePositionSectionShare(
   text: string,
@@ -182,7 +185,7 @@ function parsePositionSectionShare(
   const seen = new Set<string>();
   let skippedLines = 0;
   let currentPos: Position | undefined;
-  let pendingName: string | null = null;
+  const pendingNames: string[] = [];
 
   const commit = (name: string, value?: number) => {
     const key = normalizeName(name);
@@ -198,12 +201,35 @@ function parsePositionSectionShare(
     });
   };
 
-  for (const line of lines) {
-    const header = line.match(
-      /^(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i,
+  const flushPendingWithoutValue = () => {
+    while (pendingNames.length > 0) {
+      commit(pendingNames.shift()!);
+    }
+  };
+
+  const assignMoney = (money: number) => {
+    if (pendingNames.length > 0) {
+      commit(pendingNames.shift()!, money);
+      return true;
+    }
+    // Rellenar el primer jugador de la sección actual sin valor
+    const needy = players.find(
+      (p) => p.position === currentPos && p.value === undefined,
     );
-    if (header) {
-      const token = header[1].toLowerCase();
+    if (needy) {
+      needy.value = money;
+      return true;
+    }
+    return false;
+  };
+
+  for (const line of lines) {
+    const headerMatch = line
+      .replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/, "")
+      .match(/^(PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/i);
+    if (headerMatch) {
+      flushPendingWithoutValue();
+      const token = headerMatch[1].toLowerCase();
       currentPos =
         token.startsWith("porter")
           ? "portero"
@@ -212,57 +238,108 @@ function parsePositionSectionShare(
             : token.startsWith("centro")
               ? "centrocampista"
               : "delantero";
-      pendingName = null;
       continue;
     }
 
     if (
       NOISE_LINE.test(line) ||
-      /^(plantilla|mercado|sofascore|as biwenger|henry)\b/i.test(line)
+      /^(plantilla|mercado|sofascore|as biwenger|henry)\b/i.test(line) ||
+      /\b(chachos\s*f\.?c\.?|sofascore)\b/i.test(line)
     ) {
       skippedLines += 1;
       continue;
     }
 
     if (/^\d+$/.test(line)) {
-      // puntos "0" entre nombre y valor
       continue;
     }
 
     if (isMoneyLine(line)) {
       const money = extractMoney(line);
-      if (pendingName && money !== undefined && money >= 0) {
-        commit(pendingName, money);
-        pendingName = null;
+      if (money !== undefined && money >= 50_000) {
+        if (!assignMoney(money)) skippedLines += 1;
       } else {
         skippedLines += 1;
       }
       continue;
     }
 
-    // "Batalla 3.650.000 €" en una línea
-    const inline = parseLine(line);
-    if (inline?.name && inline.value !== undefined) {
-      commit(inline.name, inline.value);
-      pendingName = null;
+    if (isOcrNoiseLine(line)) {
+      skippedLines += 1;
       continue;
     }
 
-    if (looksLikePlayerName(line)) {
-      if (pendingName) {
-        commit(pendingName);
-      }
-      pendingName = cleanName(line);
+    // "Batalla 3.650.000 €" / "Adriá Altimira 0" en una línea
+    const inline = parseLine(stripTrailingPoints(line));
+    if (inline?.name && inline.value !== undefined && inline.value >= 50_000) {
+      flushPendingWithoutValue();
+      commit(inline.name, inline.value);
+      continue;
+    }
+
+    const nameCandidate = stripTrailingPoints(line);
+    if (looksLikePlayerName(nameCandidate)) {
+      pendingNames.push(cleanName(nameCandidate));
       continue;
     }
 
     skippedLines += 1;
   }
 
-  if (pendingName) commit(pendingName);
+  flushPendingWithoutValue();
 
   if (players.length < 2) return null;
   return { players, skippedLines };
+}
+
+/** Corrige basura típica de Tesseract en carteles Biwenger/SofaScore. */
+function normalizeOcrFantasyText(text: string): string {
+  return text
+    .replace(/\u2014|\u2013|_+/g, " ")
+    // 1:790/000 € → 1.790.000 €
+    .replace(
+      /(\d{1,3})[:/](\d{3})[:/.](\d{3})(\s*€)?/g,
+      "$1.$2.$3$4",
+    )
+    // 1.790/000 o 1:790.000
+    .replace(
+      /(\d{1,3})[.:](\d{3})[/:](\d{3})(\s*€)?/g,
+      "$1.$2.$3$4",
+    )
+    // 2270000 € → 2.270.000 € (7 dígitos pegados)
+    .replace(
+      /\b(\d)(\d{3})(\d{3})\s*€/g,
+      "$1.$2.$3 €",
+    )
+    // Cabeceras con basura delante: 'CENTROCAMPISTAS
+    .replace(
+      /[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ](PORTEROS|DEFENSAS|CENTROCAMPISTAS|DELANTEROS)\b/gi,
+      "\n$1",
+    )
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
+function stripTrailingPoints(line: string): string {
+  return line.replace(/\s+0\s*$/u, "").trim();
+}
+
+/** Fragmentos OCR que no son nombres (badges, restos de iconos…). */
+function isOcrNoiseLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return true;
+  if (isMoneyLine(t)) return false;
+  if (/^[^\p{L}]*$/u.test(t)) return true;
+  if (/^[\d\s$€.,:/=_\-—–]+$/u.test(t)) return true;
+  if (
+    /^(ra|pl|pt|df|mc|dl|dot|ta|ss|lll|ll|oo|rn|il|nº|no)$/i.test(t)
+  ) {
+    return true;
+  }
+  // "8 $3 9", "ta 0"
+  if (/^\d/.test(t) && t.length <= 8) return true;
+  if (/^[a-zA-Z]{1,2}\s+\d+$/.test(t)) return true;
+  return false;
 }
 
 function finalize(
@@ -698,17 +775,21 @@ function isMoneyLine(line: string): boolean {
 
 function looksLikePlayerName(line: string): boolean {
   if (!line || NOISE_LINE.test(line) || POSITION_ONLY.test(line)) return false;
+  if (isOcrNoiseLine(line)) return false;
   if (CLUB_OR_UI_LINE.test(line)) return false;
+  if (/\b(chachos\s*f\.?c\.?|sofascore|biwenger)\b/i.test(line)) return false;
   if (isMoneyLine(line) || line === "/" || line === "0") return false;
   if (/finaliza\b/i.test(line)) return false;
   if (/^en venta\b/i.test(line)) return false;
   if (/^\d+\s*d[ií]as?\b/i.test(line)) return false;
   if (/^\d+$/.test(line)) return false;
-  const name = cleanName(line);
-  if (!name || name.length < 2) return false;
+  const name = cleanName(stripTrailingPoints(line));
+  if (!name || name.length < 3) return false;
   if (/^\d/.test(name)) return false;
   if (name.split(/\s+/).length > 5) return false;
-  return /[\p{L}]/u.test(name);
+  // Iniciales sueltas / restos OCR de 1 token muy corto
+  if (name.split(/\s+/).length === 1 && name.length < 3) return false;
+  return /[\p{L}]{3,}/u.test(name);
 }
 
 function expandToLines(text: string): string[] {
@@ -829,6 +910,7 @@ function cleanName(raw: string): string {
   return raw
     .replace(/[€$]/g, " ")
     .replace(/\b(eur|euros|valor|precio|puja|min|máx|max)\b/gi, " ")
+    .replace(/\s+0\s*$/u, " ")
     .replace(/[^\p{L}\p{N}.'\-\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
