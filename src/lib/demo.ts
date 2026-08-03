@@ -1,7 +1,13 @@
-import { EXAMPLE_LEAGUE_RULES } from "@/lib/constants";
+import { EXAMPLE_LEAGUE_RULES, PLATFORM_RULE_PRESETS } from "@/lib/constants";
 import { createId } from "@/lib/format";
 import type { AnalysisFormValues } from "@/lib/schemas";
-import type { MarketPlayer, Position, PlayerStatus, SquadPlayer } from "@/lib/types";
+import type {
+  MarketPlayer,
+  PlatformId,
+  Position,
+  PlayerStatus,
+  SquadPlayer,
+} from "@/lib/types";
 
 type SquadDraft = {
   id?: string;
@@ -52,7 +58,9 @@ function marketPlayer(partial: MarketDraft): MarketPlayer {
 }
 
 /** Plantilla y mercado ficticios (sin jugadores reales ni marcas). */
-export function createDemoFormValues(): AnalysisFormValues {
+export function createDemoFormValues(
+  platform: PlatformId = "biwenger",
+): AnalysisFormValues {
   const squad: SquadPlayer[] = [
     squadPlayer({
       name: "K. Rivas",
@@ -209,20 +217,58 @@ export function createDemoFormValues(): AnalysisFormValues {
     }),
   ];
 
+  const preset =
+    PLATFORM_RULE_PRESETS.find((p) => p.id === platform) ??
+    PLATFORM_RULE_PRESETS.find((p) => p.id === "biwenger")!;
+  const rules = { ...preset.rules };
+
+  // Comunio suele admitir más plazas: rellenamos cupo con suplentes ficticios.
+  let finalSquad = squad;
+  if (platform === "comunio" && rules.maxPlayers > squad.length) {
+    const extras: SquadDraft[] = [
+      { name: "G. Nieto", position: "defensa", value: 700_000 },
+      { name: "Q. Haro", position: "centrocampista", value: 650_000 },
+      { name: "X. Briñas", position: "delantero", value: 800_000 },
+      { name: "Y. Collado", position: "defensa", value: 550_000 },
+    ];
+    finalSquad = [
+      ...squad,
+      ...extras
+        .slice(0, rules.maxPlayers - squad.length)
+        .map((draft) => squadPlayer(draft)),
+    ];
+  }
+
+  const leagueName =
+    platform === "comunio"
+      ? "Comunidad de ejemplo Pujazo"
+      : platform === "laliga_fantasy"
+        ? "Liga Fantasy de ejemplo Pujazo"
+        : platform === "otro"
+          ? "Liga genérica de ejemplo Pujazo"
+          : "Liga de ejemplo Pujazo";
+
+  const balance =
+    platform === "comunio"
+      ? 1_850_000
+      : platform === "laliga_fantasy"
+        ? 3_200_000
+        : 2_400_000;
+
   return {
-    platform: "biwenger",
-    customPlatformName: "",
-    leagueName: "Liga de ejemplo Pujazo",
-    participants: 10,
+    platform,
+    customPlatformName: platform === "otro" ? "Mi fantasy" : "",
+    leagueName,
+    participants: platform === "comunio" ? 14 : 10,
     currentPosition: 6,
     matchday: 12,
     strategy: "equilibrado",
-    squad,
-    balance: 2_400_000,
-    maxPlayers: 18,
+    squad: finalSquad,
+    balance,
+    maxPlayers: rules.maxPlayers,
     allowNegativeBalance: false,
     market,
-    rules: { ...EXAMPLE_LEAGUE_RULES },
+    rules,
     analysisType: "completo",
     concreteDoubt:
       "Solo puedo fichar a uno. ¿A quién compro y qué debería vender?",

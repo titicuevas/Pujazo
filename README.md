@@ -132,22 +132,27 @@ src/
 - Sin estadísticas, lesiones o noticias en tiempo real
 - Las recomendaciones se basan solo en los datos introducidos o pegados por el usuario
 
-## Qué incluye la V2 (actual)
+## Qué incluye la V2
 
 - Importar plantilla y mercado pegando desde Biwenger, Comunio o LALIGA FANTASY (móvil y PC, con guía)
 - Detección de saldo/dinero al pegar
 - Presets de reglas por plataforma (Biwenger / Comunio / LALIGA FANTASY / genérico)
-- Resultado demo-ready (copiar / descargar / compartir)
+- Datos de ejemplo adaptados a la plataforma elegida
+- Resultado demo-ready (copiar / descargar / compartir / PDF)
 - React Doctor + QA (`pnpm qa` / `pnpm qa:full`)
 - E2e Playwright en desktop, tablet y móvil
 
-## En curso · V3
+## V3 (cerrada en local)
 
-- Comparativa avanzada de candidatos (ranking en resultado) ✅
-- Historial local de planes (hasta 15 en el dispositivo) ✅
-- Guardar PDF / imprimir el plan ✅
-- Conectores opcionales (extensión del navegador con consentimiento explícito)
-- Posible capa de IA opcional y transparente (nunca opaca)
+- Comparativa avanzada de candidatos (ranking en resultado)
+- Historial local de planes (hasta 15 en el dispositivo)
+- Guardar PDF / imprimir el plan
+- Pegado mejorado Comunio / LALIGA FANTASY + tips si falla la importación
+
+## Futuro (opcional)
+
+- Conector extensión del navegador (solo con consentimiento; sin subir datos)
+- Capa de IA opcional y transparente (nunca opaca; sin filtrar datos sin aviso)
 
 ## Despliegue en Vercel
 

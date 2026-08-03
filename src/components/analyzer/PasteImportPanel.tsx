@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { Button, TextArea } from "@/components/ui/Primitives";
 import {
+  getPasteFailureHint,
   parsePastedPlayers,
   type ParsedPastePlayer,
   type PasteMeta,
@@ -93,9 +94,19 @@ export function PasteImportPanel({
   const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleImport() {
+    if (!text.trim()) {
+      setOpen(true);
+      setFeedback(
+        `No hay texto que importar. ${getPasteFailureHint(platform, kind)}`,
+      );
+      return;
+    }
     const result = parsePastedPlayers(text);
     if (result.players.length === 0) {
-      setFeedback(result.warnings[0] ?? "No se detectaron jugadores.");
+      setOpen(true);
+      const base =
+        result.warnings[0] ?? "No se detectaron jugadores en el texto pegado.";
+      setFeedback(`${base} ${getPasteFailureHint(platform, kind)}`);
       return;
     }
     onImport(result.players, mode, result.meta);
@@ -256,7 +267,11 @@ export function PasteImportPanel({
           {feedback ? (
             <p
               role="status"
-              className="rounded-md border border-lime/30 bg-lime/10 px-3 py-2 text-sm text-foam"
+              className={
+                feedback.startsWith("Importados")
+                  ? "rounded-md border border-lime/30 bg-lime/10 px-3 py-2 text-sm text-foam"
+                  : "rounded-md border border-coral/40 bg-coral/10 px-3 py-2 text-sm text-foam"
+              }
             >
               {feedback}
             </p>

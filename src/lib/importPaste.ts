@@ -1,4 +1,4 @@
-import type { Position } from "@/lib/types";
+import type { PlatformId, Position } from "@/lib/types";
 import { normalizeName } from "@/lib/schemas";
 
 export type ParsedPastePlayer = {
@@ -110,7 +110,7 @@ function finalize(
 ): PasteParseResult {
   if (players.length === 0) {
     warnings.push(
-      "No se detectaron jugadores. Copia la plantilla o el mercado en tu fantasy (Biwenger, Comunio o LALIGA FANTASY), pega aquí e inténtalo de nuevo.",
+      "No se detectaron jugadores en el texto pegado.",
     );
   } else if (players.some((p) => p.value === undefined)) {
     warnings.push(
@@ -642,4 +642,38 @@ function normalizeToken(token: string): string {
     .replace(/\p{M}/gu, "")
     .toLowerCase()
     .trim();
+}
+
+/** Consejo concreto cuando el pegado no detecta jugadores. */
+export function getPasteFailureHint(
+  platform: PlatformId,
+  kind: "squad" | "market",
+): string {
+  const hints: Record<PlatformId, Record<"squad" | "market", string>> = {
+    biwenger: {
+      squad:
+        "Consejo Biwenger: Equipo → Plantilla (no Alineación). El texto debería incluir “Vender” y valores con €.",
+      market:
+        "Consejo Biwenger: abre Mercado (venta/puja), no “Todos los jugadores”. Copia la cuadrícula con “Pujar”.",
+    },
+    comunio: {
+      squad:
+        "Consejo Comunio: copia la lista de tu equipo con nombres, POR/DEF/MED/DEL y valor. Si solo sales puntos o fotos, no bastará.",
+      market:
+        "Consejo Comunio: pega ofertas/mercado con nombre + posición + valor. Revisa luego las pujas a mano.",
+    },
+    laliga_fantasy: {
+      squad:
+        "Consejo LALIGA FANTASY: copia las fichas de plantilla (posición, Valor y Cláusula si aparecen).",
+      market:
+        "Consejo LALIGA FANTASY: pega candidatos del mercado con valor/cláusula visibles en texto.",
+    },
+    otro: {
+      squad:
+        "Consejo: pega un listado con nombre, posición y valor (una línea por jugador o bloques claros).",
+      market:
+        "Consejo: incluye al menos nombre y un precio/valor por candidato; completa a mano lo que falte.",
+    },
+  };
+  return hints[platform]?.[kind] ?? hints.otro[kind];
 }

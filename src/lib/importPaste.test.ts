@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePastedPlayers } from "@/lib/importPaste";
+import { parsePastedPlayers, getPasteFailureHint } from "@/lib/importPaste";
 
 describe("parsePastedPlayers", () => {
   it("extrae nombres, posiciones y valores europeos", () => {
@@ -287,5 +287,11 @@ Carvajal\tDEF\t8200000
       value: 12_500_000,
     });
     expect(result.players[1].value).toBe(8_200_000);
+  });
+
+  it("devuelve tips de fallo por plataforma", () => {
+    expect(getPasteFailureHint("biwenger", "squad")).toMatch(/Plantilla/i);
+    expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);
+    expect(getPasteFailureHint("laliga_fantasy", "squad")).toMatch(/LALIGA/i);
   });
 });

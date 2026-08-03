@@ -180,8 +180,14 @@ export function AnalyzerWizard() {
   }
 
   function loadDemo() {
-    reset(createDemoFormValues());
-    setBanner("Datos de ejemplo cargados. Revisa los pasos y genera el análisis.");
+    const platform = getValues("platform") || "biwenger";
+    const demo = createDemoFormValues(platform);
+    const presetLabel =
+      PLATFORM_RULE_PRESETS.find((p) => p.id === platform)?.label ?? platform;
+    reset(demo);
+    setBanner(
+      `Datos de ejemplo (${presetLabel}) cargados. Revisa los pasos y genera el análisis.`,
+    );
     setStep(0);
   }
 
@@ -257,7 +263,7 @@ export function AnalyzerWizard() {
   return (
     <FormProvider {...methods}>
       <form onSubmit={onSubmit} className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">
               Analizar mi equipo
@@ -275,6 +281,10 @@ export function AnalyzerWizard() {
             </Button>
           </div>
         </div>
+        <p className="mb-6 text-xs text-mist">
+          La demo usa la plataforma seleccionada (Biwenger, Comunio, LALIGA
+          FANTASY u otra) y carga plantilla, mercado y reglas de ejemplo.
+        </p>
 
         {banner ? (
           <div

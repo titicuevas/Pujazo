@@ -36,7 +36,7 @@ test.describe("Flujo del analizador", () => {
 
     await page.getByRole("button", { name: "Probar con datos de ejemplo" }).click();
     await expect(
-      page.getByText("Datos de ejemplo cargados", { exact: false }),
+      page.getByText(/Datos de ejemplo \(.+\) cargados/i),
     ).toBeVisible();
 
     await page.getByRole("navigation", { name: "Progreso del formulario" })
@@ -90,6 +90,25 @@ test.describe("Flujo del analizador", () => {
     await expect(page.getByRole("button", { name: "Abrir" }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "Abrir" }).first().click();
+    await page.waitForURL("**/resultado");
+    await expect(
+      page.getByRole("heading", { name: "Tu plan de acción" }),
+    ).toBeVisible();
+  });
+
+  test("demo Comunio carga preset y genera plan", async ({ page }) => {
+    await page.goto("/analizar");
+    await page.getByLabel(/Comunio/i).click();
+    await page.getByRole("button", { name: "Probar con datos de ejemplo" }).click();
+    await expect(
+      page.getByText(/Datos de ejemplo \(Comunio\) cargados/i),
+    ).toBeVisible();
+
+    await page
+      .getByRole("navigation", { name: "Progreso del formulario" })
+      .getByRole("button", { name: /6/ })
+      .click();
+    await page.getByRole("button", { name: "Generar plan" }).click();
     await page.waitForURL("**/resultado");
     await expect(
       page.getByRole("heading", { name: "Tu plan de acción" }),
