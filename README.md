@@ -150,6 +150,7 @@ src/
 - Pegado mejorado Comunio / LALIGA FANTASY + tips si falla la importación
 - Storage local validado (descarta datos corruptos, avisa si no hay espacio)
 - Páginas de error / 404, SEO básico (OG, robots, sitemap) y CI en GitHub
+- Guías públicas: Cómo usar y Privacidad (datos solo en el dispositivo)
 
 ## Futuro (opcional)
 

@@ -38,10 +38,10 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
         <nav aria-label="Principal" className="flex items-center gap-1.5 sm:gap-3">
           {!compact && (
             <Link
-              href="/#como-funciona"
+              href="/como-usar"
               className="rounded-md px-2.5 py-2 text-sm font-medium text-foam transition hover:text-ink sm:px-3"
             >
-              Cómo funciona
+              Cómo usar
             </Link>
           )}
           <Link
@@ -66,7 +66,7 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
 function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-[var(--line)] bg-pitch-950/90">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 px-4 py-7 text-sm text-foam sm:px-6 sm:py-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-7 text-sm text-foam sm:px-6 sm:py-8">
         <p className="font-display inline-flex items-center gap-2 text-lg font-bold text-lime">
           <BrandMark className="rounded-md ring-1 ring-lime/30" />
           Pujazo
@@ -75,6 +75,35 @@ function SiteFooter() {
           Asistente independiente para fantasy fútbol en España. Sin conexión a
           cuentas, sin automatización de fichajes y sin datos en tiempo real.
         </p>
+        <nav
+          aria-label="Pie de página"
+          className="flex flex-wrap gap-x-4 gap-y-2 text-sm"
+        >
+          <Link
+            href="/como-usar"
+            className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            Cómo usar
+          </Link>
+          <Link
+            href="/privacidad"
+            className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            Privacidad
+          </Link>
+          <Link
+            href="/historial"
+            className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            Historial
+          </Link>
+          <Link
+            href="/analizar"
+            className="text-mist underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            Analizar
+          </Link>
+        </nav>
         <p className="text-xs leading-relaxed text-mist">
           Pujazo es una herramienta independiente y no está afiliada ni
           respaldada por Biwenger, Comunio, LALIGA FANTASY ni otras plataformas

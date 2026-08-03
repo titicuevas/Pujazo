@@ -17,8 +17,26 @@ test.describe("Home", () => {
       page.getByRole("link", { name: "Empezar pegando plantilla" }),
     ).toBeVisible();
     await expect(
+      page.getByRole("contentinfo").getByRole("link", { name: "Privacidad" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("contentinfo").getByRole("link", { name: "Cómo usar" }),
+    ).toBeVisible();
+    await expect(
       page.getByLabel("Aviso de independencia"),
     ).toContainText("herramienta independiente");
+  });
+
+  test("páginas de cómo usar y privacidad cargan en español", async ({
+    page,
+  }) => {
+    await page.goto("/como-usar");
+    await expect(
+      page.getByRole("heading", { name: "Cómo usar Pujazo" }),
+    ).toBeVisible();
+    await page.goto("/privacidad");
+    await expect(page.getByRole("heading", { name: "Privacidad" })).toBeVisible();
+    await expect(page.getByText(/localStorage/i)).toBeVisible();
   });
 
   test("el enlace de saltar al contenido existe para teclado", async ({
