@@ -56,7 +56,7 @@ const POSITION_ALIASES: { position: Position; tokens: string[] }[] = [
 ];
 
 const NOISE_LINE =
-  /^(plantilla|noticias|mercado|jugadores|equipo|mi equipo|mis jugadores|squad|team|saldo|dinero|presupuesto|cash|posición|posicion|nombre|total|clasificación|clasificacion|alineación|alineacion|estrategia|guardar alineación|guardar alineacion|suplentes|añadir|anadir|buscar|buscar jugador|vender|pujar|comprar|inicio|liga|jornada|evolución del mercado|evolucion del mercado|todos los jugadores|primera división|primera division|subidas|bajadas|más estadísticas|mas estadisticas|fecha|propietario|ofertas|comunio|biwenger|laliga|fantasy|mi plantilla|mi mercado|chachos f\.?c\.?)\b/i;
+  /^(plantilla|noticias|mercado|jugadores|equipo|mi equipo|mis jugadores|squad|team|saldo|dinero|presupuesto|cash|posición|posicion|nombre|total|clasificación|clasificacion|alineación|alineacion|estrategia|guardar alineación|guardar alineacion|suplentes|añadir|anadir|buscar|buscar jugador|vender|pujar|comprar|inicio|liga|jornada|evolución del mercado|evolucion del mercado|todos los jugadores|primera división|primera division|subidas|bajadas|más estadísticas|mas estadisticas|fecha|propietario|ofertas|comunio|biwenger|laliga|fantasy|mi plantilla|mi mercado|chachos f\.?c\.?|en venta|valor de equipo|puntos)\b/i;
 
 const POSITION_ONLY = /^(PT|DF|MC|DL|POR|DEF|MED|DEL|GK)$/i;
 
@@ -109,11 +109,20 @@ function finalize(
   warnings: string[],
   meta: PasteMeta,
 ): PasteParseResult {
-  if (players.length === 0) {
+  // Descarta ruido de UI (p. ej. “En venta” + saldo negativo del pie)
+  const cleaned = players.filter((player) => {
+    if (/^en venta\b/i.test(player.name)) return false;
+    if (player.value !== undefined && player.value < 0) return false;
+    return true;
+  });
+  const dropped = players.length - cleaned.length;
+  skippedLines += dropped;
+
+  if (cleaned.length === 0) {
     warnings.push(
       "No se detectaron jugadores en el texto pegado.",
     );
-  } else if (players.some((p) => p.value === undefined)) {
+  } else if (cleaned.some((p) => p.value === undefined)) {
     warnings.push(
       "Algunos jugadores no traían valor: revísalos y completa el precio en el formulario.",
     );
@@ -123,7 +132,7 @@ function finalize(
       `Saldo detectado: ${meta.balance.toLocaleString("es-ES")} € (puedes corregirlo en Presupuesto).`,
     );
   }
-  return { players, skippedLines, warnings, meta };
+  return { players: cleaned, skippedLines, warnings, meta };
 }
 
 /** Busca saldo/dinero etiquetado en pegados (Biwenger, Comunio, etc.). */
@@ -177,7 +186,7 @@ function trimToUsefulSection(text: string): string {
   }
 
   const cutCatalog = out.search(
-    /(?:^|\n)\s*(Evolución del mercado|Evolucion del mercado|Todos los jugadores|Clasificación general|Clasificacion general)\b/i,
+    /(?:^|\n)\s*(Evolución del mercado|Evolucion del mercado|Todos los jugadores|Clasificación general|Clasificacion general|Valor de Equipo)\b/i,
   );
   if (cutCatalog >= 0) {
     out = out.slice(0, cutCatalog);
@@ -442,7 +451,8 @@ function parseCardChunk(chunk: string[]): ParsedPastePlayer | null {
 
     if (isMoneyLine(line)) {
       const money = extractMoney(line);
-      if (money !== undefined) moneys.push(money);
+      // Valores de mercado de jugador son >= 0; el saldo negativo va en meta
+      if (money !== undefined && money >= 0) moneys.push(money);
       continue;
     }
 
@@ -529,9 +539,12 @@ function looksLikePlayerName(line: string): boolean {
   if (CLUB_OR_UI_LINE.test(line)) return false;
   if (isMoneyLine(line) || line === "/" || line === "0") return false;
   if (/finaliza\b/i.test(line)) return false;
+  if (/^en venta\b/i.test(line)) return false;
+  if (/^\d+\s*d[ií]as?\b/i.test(line)) return false;
   if (/^\d+$/.test(line)) return false;
   const name = cleanName(line);
   if (!name || name.length < 2) return false;
+  if (/^\d/.test(name)) return false;
   if (name.split(/\s+/).length > 5) return false;
   return /[\p{L}]/u.test(name);
 }

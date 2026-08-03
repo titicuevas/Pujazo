@@ -221,7 +221,9 @@ describe("pegado real CHACHOS F.C (Henry)", () => {
     const result = parsePastedPlayers(PLANTILLA);
     const names = result.players.map((p) => p.name);
 
-    expect(result.players.length).toBeGreaterThanOrEqual(14);
+    expect(result.players.length).toBe(16);
+    expect(names).not.toContain("En venta");
+    expect(names).not.toContain("Henry");
     expect(names).toEqual(
       expect.arrayContaining([
         "Batalla",
@@ -241,6 +243,9 @@ describe("pegado real CHACHOS F.C (Henry)", () => {
         "Roberto Fernández",
         "Camello",
       ]),
+    );
+    expect(result.players.find((p) => p.name === "Germán Parreño")?.position).toBe(
+      "portero",
     );
     expect(result.players.find((p) => p.name === "Lookman")?.value).toBe(
       7_960_000,

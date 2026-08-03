@@ -56,8 +56,9 @@ export function Field({
   );
 }
 
+/* text-base (16px): evita zoom automático de iOS al enfocar inputs */
 const controlClass =
-  "w-full rounded-md border border-[var(--line)] bg-pitch-950/70 px-3 py-2.5 text-sm text-ink placeholder:text-mist/85 transition hover:border-lime/30 focus:border-lime";
+  "w-full rounded-md border border-[var(--line)] bg-pitch-950/70 px-3 py-2.5 text-base text-ink placeholder:text-mist/85 transition hover:border-lime/30 focus:border-lime";
 
 export function TextInput({
   className = "",

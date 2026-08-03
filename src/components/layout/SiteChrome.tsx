@@ -25,35 +25,35 @@ function BrandMark({ className = "" }: { className?: string }) {
 
 function SiteHeader({ compact = false }: { compact?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[color:var(--panel-strong)] backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
+    <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[color:var(--panel-strong)] pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
         <Link
           href="/"
-          className="font-display inline-flex items-center gap-2 text-xl font-extrabold tracking-tight text-lime sm:gap-2.5 sm:text-2xl"
+          className="font-display inline-flex min-w-0 shrink items-center gap-1.5 text-lg font-extrabold tracking-tight text-lime sm:gap-2.5 sm:text-2xl"
           aria-label="Pujazo, inicio"
         >
           <BrandMark className="shrink-0 rounded-md ring-1 ring-lime/30" />
-          Pujazo
+          <span className="truncate">Pujazo</span>
         </Link>
-        <nav aria-label="Principal" className="flex items-center gap-1.5 sm:gap-3">
+        <nav
+          aria-label="Principal"
+          className="flex shrink-0 items-center gap-0.5 sm:gap-3"
+        >
           {!compact && (
             <Link
               href="/como-usar"
-              className="rounded-md px-2.5 py-2 text-sm font-medium text-foam transition hover:text-ink sm:px-3"
+              className="hidden rounded-md px-2.5 py-2 text-sm font-medium text-foam transition hover:text-ink sm:inline-flex sm:px-3"
             >
               Cómo usar
             </Link>
           )}
           <Link
             href="/historial"
-            className="rounded-md px-2.5 py-2 text-sm font-medium text-foam transition hover:text-ink sm:px-3"
+            className="rounded-md px-2 py-2 text-sm font-medium text-foam transition hover:text-ink sm:px-3"
           >
             Historial
           </Link>
-          <Link
-            href="/analizar"
-            className="cta-primary px-3 py-2 text-sm"
-          >
+          <Link href="/analizar" className="cta-primary px-3 py-2 text-sm">
             <span className="sm:hidden">Analizar</span>
             <span className="hidden sm:inline">Analizar mi equipo</span>
           </Link>
@@ -65,7 +65,7 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
 
 function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-[var(--line)] bg-pitch-950/90">
+    <footer className="mt-auto border-t border-[var(--line)] bg-pitch-950/90 pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-7 text-sm text-foam sm:px-6 sm:py-8">
         <p className="font-display inline-flex items-center gap-2 text-lg font-bold text-lime">
           <BrandMark className="rounded-md ring-1 ring-lime/30" />

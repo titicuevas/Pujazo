@@ -39,5 +39,15 @@ export default defineConfig({
       name: "mobile",
       use: { ...devices["Pixel 5"] },
     },
+    {
+      // Peor caso estrecho (320px) + WebKit iOS
+      name: "mobile-ios",
+      use: { ...devices["iPhone SE"] },
+    },
+    {
+      // Samsung típico en España
+      name: "mobile-samsung",
+      use: { ...devices["Galaxy S24"] },
+    },
   ],
 });
