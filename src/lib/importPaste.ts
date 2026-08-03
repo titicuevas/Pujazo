@@ -82,7 +82,8 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
 
   text = trimToUsefulSection(text);
 
-  const meta = extractPasteMeta(text);
+  // Meta (saldo) desde el pegado completo: a veces va en cabecera/pie
+  const meta = extractPasteMeta(raw.replace(/\r\n/g, "\n"));
   const biwenger = parseBiwengerCards(text);
   if (biwenger && biwenger.players.length > 0) {
     return finalize(biwenger.players, biwenger.skippedLines, warnings, meta);
@@ -128,21 +129,40 @@ function finalize(
 /** Busca saldo/dinero etiquetado en pegados (Biwenger, Comunio, etc.). */
 export function extractPasteMeta(raw: string): PasteMeta {
   const text = raw.replace(/\r\n/g, "\n");
-  const labels = "Saldo|Dinero|Presupuesto|Cash|Disponible";
-  const patterns = [
-    new RegExp(`(?:${labels})\\s*\\n\\s*([^\\n]+)`, "i"),
-    new RegExp(`([^\\n]+)\\s*\\n\\s*(?:${labels})\\b`, "i"),
-    new RegExp(`(?:${labels})\\s*[:：]?\\s*([^\\n]+)`, "i"),
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (!match?.[1]) continue;
+  const candidates: number[] = [];
+
+  // Biwenger suele poner el importe encima de la etiqueta “Saldo”
+  for (const match of text.matchAll(
+    /([^\n]+)\n\s*Saldo(?!\s+futuro)\b/gi,
+  )) {
     const value = extractMoney(match[1].trim());
-    if (value !== undefined && value >= 10_000) {
-      return { balance: value };
-    }
+    if (value !== undefined) candidates.push(value);
   }
-  return {};
+  for (const match of text.matchAll(
+    /Saldo(?!\s+futuro)\b\s*\n\s*([^\n]+)/gi,
+  )) {
+    const value = extractMoney(match[1].trim());
+    if (value !== undefined) candidates.push(value);
+  }
+  for (const match of text.matchAll(
+    /(?:Dinero|Presupuesto|Cash|Disponible)\s*[:：]?\s*([^\n]+)/gi,
+  )) {
+    const value = extractMoney(match[1].trim());
+    if (value !== undefined) candidates.push(value);
+  }
+
+  // Efectivo típico (puede ser negativo); evita “valor alineado” / plantilla enorme
+  const cashLike = candidates.filter(
+    (value) => Math.abs(value) >= 100 && Math.abs(value) < 20_000_000,
+  );
+  if (cashLike.length === 0) return {};
+
+  const negative = cashLike.find((value) => value < 0);
+  if (negative !== undefined) return { balance: negative };
+
+  // Preferir el más pequeño en valor absoluto (saldo vs puja máxima)
+  cashLike.sort((a, b) => Math.abs(a) - Math.abs(b));
+  return { balance: cashLike[0] };
 }
 
 /** Quita alineación, catálogo global y ruido de UI. */
@@ -572,25 +592,35 @@ function parseLine(line: string): ParsedPastePlayer | null {
 }
 
 function extractMoney(line: string): number | undefined {
+  const negative = /^\s*[-−–]/.test(line);
+  let amount: number | undefined;
+
   const millions = line.match(/(\d+[.,]?\d*)\s*[mM]\b/);
   if (millions) {
     const n = Number(millions[1].replace(",", "."));
-    if (!Number.isNaN(n) && n > 0) return Math.round(n * 1_000_000);
+    if (!Number.isNaN(n) && n > 0) amount = Math.round(n * 1_000_000);
   }
 
-  const european = line.match(/(\d{1,3}(?:[.\s]\d{3})+)(?:[.,]\d+)?/);
-  if (european) {
-    const n = Number(european[1].replace(/[.\s]/g, ""));
-    if (!Number.isNaN(n) && n >= 1000) return n;
+  if (amount === undefined) {
+    const european = line.match(/(\d{1,3}(?:[.\s]\d{3})+)(?:[.,]\d+)?/);
+    if (european) {
+      const n = Number(european[1].replace(/[.\s]/g, ""));
+      if (!Number.isNaN(n) && n >= 100) amount = n;
+    }
   }
 
-  const plain = line.match(/(?:^|[^\d])(\d{4,9})(?:[^\d]|$)/);
-  if (plain) {
-    const n = Number(plain[1]);
-    if (!Number.isNaN(n) && n >= 1000) return n;
+  if (amount === undefined) {
+    const plain = line.match(/(?:^|[^\d])(\d{4,9})(?:[^\d]|$)/);
+    if (plain) {
+      const n = Number(plain[1]);
+      if (!Number.isNaN(n) && n >= 1000) amount = n;
+    }
   }
 
-  return undefined;
+  if (amount === undefined) return undefined;
+  // Permitir saldos pequeños tipo 39.100 € (antes el umbral era 1000 en europeo)
+  if (!negative && amount < 1000 && !/€/.test(line)) return undefined;
+  return negative ? -Math.abs(amount) : amount;
 }
 
 function mapPositionToken(token: string): Position | undefined {

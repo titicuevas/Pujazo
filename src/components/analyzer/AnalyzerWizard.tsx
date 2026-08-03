@@ -584,6 +584,9 @@ function StepSquad() {
     }
     if (meta.balance !== undefined) {
       setValue("balance", meta.balance, { shouldDirty: true });
+      if (meta.balance < 0) {
+        setValue("allowNegativeBalance", true, { shouldDirty: true });
+      }
     }
   }
 
@@ -834,6 +837,9 @@ function StepBudget() {
     }
     if (meta.balance !== undefined) {
       setValue("balance", meta.balance, { shouldDirty: true });
+      if (meta.balance < 0) {
+        setValue("allowNegativeBalance", true, { shouldDirty: true });
+      }
     }
   }
 

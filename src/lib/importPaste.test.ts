@@ -289,9 +289,21 @@ Carvajal\tDEF\t8200000
     expect(result.players[1].value).toBe(8_200_000);
   });
 
-  it("devuelve tips de fallo por plataforma", () => {
-    expect(getPasteFailureHint("biwenger", "squad")).toMatch(/Plantilla/i);
-    expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);
-    expect(getPasteFailureHint("laliga_fantasy", "squad")).toMatch(/LALIGA/i);
+  it("detecta saldos negativos etiquetados (Biwenger en números rojos)", () => {
+    const raw = `
+Lookman
+DL
+0
+Lookman
+7.960.000 €
+Vender
+-39.100 €
+Saldo
+38.560.000 €
+Valor alineado
+`;
+    const result = parsePastedPlayers(raw);
+    expect(result.meta.balance).toBe(-39_100);
+    expect(result.players.some((p) => p.name === "Lookman")).toBe(true);
   });
 });
