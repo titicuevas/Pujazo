@@ -40,6 +40,8 @@ test.describe("Fiabilidad del plan", () => {
     await expect(
       page.getByRole("heading", { name: "Acciones de la jornada" }),
     ).toBeVisible();
+    await expect(page.getByText("Buena compra hasta").first()).toBeVisible();
+    await expect(page.getByText(/Para poder pujar|Ventas recomendadas/i).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Revisa estos datos" })).toHaveCount(
       0,
     );
@@ -84,6 +86,23 @@ test.describe("Fiabilidad del plan", () => {
     await expect(page).toHaveURL(/\/analizar/);
     await expect(
       page.getByText(/Pega o añade el mercado|cambia el tipo de análisis/i),
+    ).toBeVisible();
+  });
+
+  test("bloquea generar si el mercado no tiene precios", async ({ page }) => {
+    await loadDemo(page);
+    await clearMarket(page);
+
+    await page.getByRole("button", { name: "Añadir al mercado" }).click();
+    await page.getByRole("textbox", { name: "Nombre" }).last().fill("Calero");
+    await page.getByLabel("Valor de mercado (€)").last().fill("0");
+
+    await goToStep(page, 6);
+    await page.getByRole("button", { name: "Generar plan" }).click();
+
+    await expect(page).toHaveURL(/\/analizar/);
+    await expect(
+      page.getByText(/Faltan precios|completa los €|sin precio/i).first(),
     ).toBeVisible();
   });
 });

@@ -559,15 +559,40 @@ function MarketRankingPanel({
 }
 
 function SalesGrid({ result }: { result: AnalysisResult }) {
+  const buyCost =
+    result.recommendedBid ?? result.primaryTarget?.recommendedBid ?? 0;
+  const sellSum = result.sellRecommendations.reduce(
+    (acc, player) => acc + player.value,
+    0,
+  );
+  // Hueco aproximado: lo que aportan las ventas respecto al fichaje (si hay)
+  const showsFunding =
+    result.mustSellBeforeBuy &&
+    result.sellRecommendations.length > 0 &&
+    buyCost > 0;
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Panel>
         <h2 className="font-display text-lg font-semibold text-lime">
           Ventas recomendadas
         </h2>
+        {showsFunding ? (
+          <p className="mt-2 text-sm text-foam">
+            Para poder pujar ~{formatMoney(buyCost)}
+            {result.primaryTarget
+              ? ` por ${result.primaryTarget.player.name}`
+              : ""}
+            : estas ventas suman{" "}
+            <strong className="text-ink">{formatMoney(sellSum)}</strong>.
+          </p>
+        ) : null}
         {result.sellRecommendations.length === 0 ? (
           <p className="mt-2 text-sm text-mist">
-            No hay ventas prioritarias con los datos actuales.
+            No hay ventas prioritarias con los datos actuales
+            {result.mustSellBeforeBuy
+              ? " (revisa cupo/saldo o marca menos jugadores como «no vender»)."
+              : "."}
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -586,6 +611,12 @@ function SalesGrid({ result }: { result: AnalysisResult }) {
             ))}
           </ul>
         )}
+        {result.sellRecommendations.length > 0 ? (
+          <p className="mt-3 text-xs text-mist">
+            Total liberado aprox.: {formatMoney(sellSum)} · saldo previsto tras
+            el plan: {formatMoney(result.projectedBalance)}
+          </p>
+        ) : null}
       </Panel>
       <Panel>
         <h2 className="font-display text-lg font-semibold text-lime">
