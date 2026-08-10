@@ -9,7 +9,7 @@ import {
   type PasteMeta,
 } from "@/lib/importPaste";
 import { recognizeImageText } from "@/lib/ocrPaste";
-import { takePendingShareText } from "@/lib/shareImport";
+import { takePendingShareTextFor } from "@/lib/shareImport";
 import type { PlatformId } from "@/lib/types";
 
 type PasteMode = "replace" | "append";
@@ -150,13 +150,8 @@ export function PasteImportPanel({
   useEffect(() => {
     if (!autoShareOnMount || autoShareTried.current) return;
     autoShareTried.current = true;
-    const shared = takePendingShareText();
-    if (!shared?.trim()) {
-      setFeedback(
-        "No llegó texto compartido. En Biwenger usa Compartir → Pujazo, o pega el texto #Biwenger.",
-      );
-      return;
-    }
+    const shared = takePendingShareTextFor(kind);
+    if (!shared?.trim()) return;
     const preview = parsePastedPlayers(shared);
     if (preview.players.length >= 1) {
       importFromText(shared, false);

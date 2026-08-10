@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Controller,
@@ -42,6 +42,10 @@ import {
   saveLastAnalysis,
   storageWriteMessage,
 } from "@/lib/storage";
+import {
+  guessShareImportKind,
+  peekPendingShareText,
+} from "@/lib/shareImport";
 import { analyzeTeam } from "@/lib/analysis";
 import {
   copyText,
@@ -108,10 +112,21 @@ export function AnalyzerWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const startPaste = searchParams.get("pegar") === "1";
-  const [step, setStep] = useState(startPaste ? 2 : 0);
+  const startShare = searchParams.get("share") === "1";
+  const [step, setStep] = useState(startPaste || startShare ? 2 : 0);
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const hydratedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!startShare) return;
+    const pending = peekPendingShareText();
+    if (pending && guessShareImportKind(pending) === "market") {
+      setStep(3);
+    } else {
+      setStep(2);
+    }
+  }, [startShare]);
 
   const methods = useForm<AnalysisFormValues>({
     resolver: zodResolver(analysisFormSchema) as never,
@@ -837,6 +852,8 @@ function StepSquad() {
 }
 
 function StepBudget() {
+  const searchParams = useSearchParams();
+  const autoShareOnMount = searchParams.get("share") === "1";
   const {
     control,
     register,
@@ -949,6 +966,7 @@ function StepBudget() {
         kind="market"
         platform={platform}
         defaultOpen
+        autoShareOnMount={autoShareOnMount}
         onImport={importMarketPlayers}
       />
 
