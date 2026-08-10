@@ -2,6 +2,8 @@
 
 Copia el texto visible de **Biwenger web** (plantilla o mercado) y abre Pujazo para importarlo. **No sube datos**: todo ocurre en tu navegador.
 
+URL por defecto: [https://pujazo.vercel.app](https://pujazo.vercel.app) (editable en el popup).
+
 ## Instalar (modo desarrollador)
 
 1. Abre Chrome → `chrome://extensions`
@@ -10,7 +12,7 @@ Copia el texto visible de **Biwenger web** (plantilla o mercado) y abre Pujazo p
 4. Abre [biwenger.as.com](https://biwenger.as.com/) en Plantilla o Mercado
 5. Pulsa el icono de Pujazo → **Copiar y abrir Pujazo**
 
-Configura la URL de tu despliegue en el popup (por defecto `https://pujazo.vercel.app`). Si usas otro dominio de Vercel, cámbialo ahí (se guarda).
+Si actualizas la extensión tras un cambio, usa **Actualizar** en `chrome://extensions`.
 
 ## Qué hace
 
@@ -19,6 +21,14 @@ Configura la URL de tu despliegue en el popup (por defecto `https://pujazo.verce
 - Abre `/analizar?pegar=1&clip=1` para intentar el auto-pegado
 
 Si el auto-pegado falla (permiso del portapapeles), usa **Pegar del portapapeles** en Pujazo.
+
+## Iconos
+
+Los PNG de `icons/` se regeneran con:
+
+```bash
+python3 scripts/generate-icons.py
+```
 
 ## Privacidad
 

@@ -167,6 +167,8 @@ src/
 - Acciones también en copiar/descargar plan; progreso visible en historial
 - “Siguiente jornada”: reusa plantilla/reglas, vacía mercado y abre el asistente
 - Página offline de la PWA (`/offline.html`) si no hay red
+- Iconos PWA/extensión con la marca (P + flecha) y variante maskable
+- E2e de checklist, siguiente jornada, editar desde historial y backup JSON
 
 ## Futuro (opcional)
 

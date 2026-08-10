@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Pujazo · importar de Biwenger",
-  "version": "0.1.0",
-  "description": "Copia el texto de plantilla o mercado de Biwenger (web) y abre Pujazo. Todo local: no sube tus datos.",
+  "version": "0.2.0",
+  "description": "Copia el texto de plantilla o mercado de Biwenger (web) y abre Pujazo (pujazo.vercel.app). Todo local: no sube tus datos.",
   "action": {
     "default_title": "Pujazo",
     "default_popup": "popup.html",

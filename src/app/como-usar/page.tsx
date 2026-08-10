@@ -103,8 +103,10 @@ export default function ComoUsarPage() {
           <p className="mt-2 text-sm leading-relaxed text-foam">
             En la carpeta <strong className="text-ink">extension/</strong> del
             repo hay un complemento local: abre Biwenger web → plantilla o
-            mercado → icono Pujazo → “Copiar y abrir Pujazo”. No sube datos;
-            solo usa el portapapeles. Instrucciones en{" "}
+            mercado → icono Pujazo → “Copiar y abrir Pujazo”. Por defecto abre{" "}
+            <strong className="text-ink">pujazo.vercel.app</strong> (puedes
+            cambiar la URL en el popup). No sube datos; solo usa el
+            portapapeles. Instrucciones en{" "}
             <code className="text-ink">extension/README.md</code>.
           </p>
         </section>

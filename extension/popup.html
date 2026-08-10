@@ -8,11 +8,15 @@
       :root {
         color-scheme: dark;
         --bg: #06140f;
-        --panel: #0b1f17;
-        --lime: #b8f200;
+        --panel: #0a1c14;
+        --lime: #9fd400;
+        --cta: #eef8b8;
         --foam: #e8f5ef;
         --mist: #a7c4b5;
-        --line: rgba(184, 242, 0, 0.22);
+        --ink: #f4fff8;
+        --on-lime: #04110c;
+        --line: rgba(159, 212, 0, 0.28);
+        --err: #ff8f75;
       }
       * {
         box-sizing: border-box;
@@ -20,21 +24,36 @@
       body {
         margin: 0;
         width: 320px;
-        font: 14px/1.45 system-ui, sans-serif;
-        background: var(--bg);
+        font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+        background: radial-gradient(
+            120% 80% at 10% 0%,
+            rgba(159, 212, 0, 0.12),
+            transparent 55%
+          ),
+          var(--bg);
         color: var(--foam);
       }
       header {
-        padding: 14px 14px 8px;
+        padding: 14px 14px 10px;
         border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      header img {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        flex-shrink: 0;
       }
       h1 {
         margin: 0;
         font-size: 18px;
-        color: #f4fff8;
+        color: var(--ink);
+        letter-spacing: -0.02em;
       }
-      p {
-        margin: 6px 0 0;
+      header p {
+        margin: 2px 0 0;
         color: var(--mist);
         font-size: 12px;
       }
@@ -54,9 +73,13 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--panel);
-        color: #f4fff8;
+        color: var(--ink);
         padding: 8px 10px;
         font-size: 13px;
+      }
+      input:focus {
+        outline: 2px solid rgba(159, 212, 0, 0.45);
+        outline-offset: 1px;
       }
       button {
         appearance: none;
@@ -66,9 +89,16 @@
         font-weight: 700;
         cursor: pointer;
       }
+      button:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
       .primary {
-        background: var(--lime);
-        color: #04110c;
+        background: var(--cta);
+        color: var(--on-lime);
+      }
+      .primary:hover:not(:disabled) {
+        filter: brightness(1.05);
       }
       .secondary {
         background: transparent;
@@ -85,18 +115,22 @@
         color: var(--lime);
       }
       #status.err {
-        color: #ff8f75;
+        color: var(--err);
       }
       .hint {
         font-size: 11px;
         color: var(--mist);
+        margin: 0;
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Pujazo</h1>
-      <p>Copia plantilla/mercado desde Biwenger (web). Sin subir datos.</p>
+      <img src="icons/icon48.png" width="36" height="36" alt="" />
+      <div>
+        <h1>Pujazo</h1>
+        <p>Copia plantilla o mercado desde Biwenger web.</p>
+      </div>
     </header>
     <main>
       <label>
@@ -104,8 +138,9 @@
         <input
           id="pujazoUrl"
           type="url"
-          placeholder="https://tu-pujazo.vercel.app"
+          placeholder="https://pujazo.vercel.app"
           spellcheck="false"
+          autocomplete="url"
         />
       </label>
       <button type="button" class="primary" id="btnCopyOpen">
@@ -116,8 +151,8 @@
       </button>
       <p id="status" role="status"></p>
       <p class="hint">
-        Abre Biwenger web en la pestaña de Plantilla o Mercado, luego pulsa el
-        botón. En Pujazo se intentará pegar solo.
+        Abre Biwenger en Plantilla o Mercado, luego pulsa el botón. Por defecto
+        usa https://pujazo.vercel.app (cámbiala si tienes otro despliegue).
       </p>
     </main>
     <script src="popup.js"></script>

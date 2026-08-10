@@ -139,4 +139,9 @@ async function run({ openPujazo }) {
 
 btnCopyOpen.addEventListener("click", () => void run({ openPujazo: true }));
 btnCopyOnly.addEventListener("click", () => void run({ openPujazo: false }));
+urlInput.addEventListener("change", () => {
+  void saveUrl().then((base) => {
+    setStatus(`URL guardada: ${base}`, "ok");
+  });
+});
 void loadSavedUrl();
