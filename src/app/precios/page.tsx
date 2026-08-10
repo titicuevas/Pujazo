@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 const freeNow = [
   "Asistente completo de fichajes, ventas, pujas y alineación",
-  "Pegar o capturar plantilla y mercado (Biwenger, Comunio, LALIGA FANTASY)",
-  "Historial local, PDF/imprimir, copiar y compartir",
-  "Sin registro, sin tarjeta y sin enviar tu liga a un servidor",
+  "Pegar o capturar plantilla y mercado (auto-import si detecta jugadores)",
+  "Plan en móvil con atajos a fichaje, ventas y once + PDF/compartir",
+  "Historial local sin registro, sin tarjeta y sin enviar tu liga a un servidor",
 ];
 
 const laterPaid = [

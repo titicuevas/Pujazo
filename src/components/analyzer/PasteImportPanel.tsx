@@ -48,29 +48,33 @@ function footballOcrProgress(status: string, progress: number): string {
 
 const GUIDE: Record<
   PlatformId,
-  Record<ImportKind, { where: string; tip: string }>
+  Record<ImportKind, { where: string; how: string; tip: string }>
 > = {
   biwenger: {
     squad: {
       where:
         "En Biwenger app: Equipo → Plantilla (vista lista con botón “Vender” en cada jugador).",
-      tip: "Lo más fiable: Compartir → pegar el texto #Biwenger. Si usas foto, captura la lista con precios; el cartel bonito de compartir no trae jugadores legibles.",
+      how: "Usa Compartir (texto #Biwenger) y pégalo aquí, o Elegir captura / foto de la lista con precios — no el cartel decorativo. En PC: Ctrl+A / Cmd+A → copiar → Pegar del portapapeles.",
+      tip: "Lo más fiable: Compartir → pegar #Biwenger. Si usas foto, la lista con “Vender” trae precios.",
     },
     market: {
       where:
-        "En Biwenger app: Mercado → Compartir (texto #Biwenger con nombres) o captura de la rejilla con “Pujar”.",
-      tip: "El share de texto es más fiable que la foto. La captura del cartel decorativo casi nunca lee nombres: usa la rejilla del mercado.",
+        "En Biwenger app: Mercado → Compartir (texto #Biwenger) o captura de la rejilla con “Pujar”.",
+      how: "Pega el texto #Biwenger o elige una captura de la rejilla del mercado (no el cartel). En PC: seleccionar → copiar → Pegar del portapapeles.",
+      tip: "El share de texto es más fiable que la foto; luego rellena precios si faltan.",
     },
   },
   comunio: {
     squad: {
       where:
         "En Comunio: abre tu equipo / plantilla (lista de jugadores con valor).",
-      tip: "Si no puedes copiar, captura la pantalla e impórtala aquí.",
+      how: "Copia el listado (nombre, POR/DEF/MED/DEL y valor) o elige una captura nítida. En PC: seleccionar → copiar → Pegar del portapapeles.",
+      tip: "Si no puedes copiar, captura la pantalla e impórtala aquí; revisa valores.",
     },
     market: {
       where:
         "En Comunio: mercado u ofertas con nombres, posición y valor.",
+      how: "Pega el texto de ofertas/mercado o una captura clara. En PC: copiar → Pegar del portapapeles.",
       tip: "Revisa después las pujas: el OCR o el pegado pueden fallar en precios.",
     },
   },
@@ -78,11 +82,13 @@ const GUIDE: Record<
     squad: {
       where:
         "En LALIGA FANTASY: tu plantilla (fichas con posición y valor/cláusula).",
-      tip: "Captura nítida de la lista completa; luego revisa nombres y valores.",
+      how: "Copia las fichas o elige una captura de la lista completa. En PC: seleccionar → Pegar del portapapeles.",
+      tip: "Captura nítida; luego revisa nombres, valores y cláusulas.",
     },
     market: {
       where:
         "En LALIGA FANTASY: mercado o jugadores en venta que quieras analizar.",
+      how: "Pega candidatos con valor/cláusula o importa una captura de esa pantalla.",
       tip: "La cláusula, si se lee bien, se usa como precio mínimo.",
     },
   },
@@ -90,11 +96,13 @@ const GUIDE: Record<
     squad: {
       where:
         "En tu fantasy: abre la plantilla con nombres, posiciones y valores.",
+      how: "Pega el listado o elige una captura limpia. En PC: copiar → Pegar del portapapeles.",
       tip: "Cuanto más limpia sea la captura o el listado, mejor.",
     },
     market: {
       where:
         "En tu fantasy: mercado o los candidatos que estés mirando.",
+      how: "Pega nombres y precios, o importa una captura de esa vista.",
       tip: "Completa a mano lo que la captura no detecte.",
     },
   },
@@ -136,7 +144,7 @@ export function PasteImportPanel({
       setFeedback(
         `No hay texto que importar. ${getPasteFailureHint(platform, kind)}`,
       );
-      return;
+      return false;
     }
     const result = parsePastedPlayers(source);
     if (result.players.length === 0) {
@@ -150,17 +158,18 @@ export function PasteImportPanel({
             : getPasteFailureHint(platform, kind)
         }`,
       );
-      return;
+      return false;
     }
     onImport(result.players, mode, result.meta);
     const extra = result.warnings.length > 0 ? ` ${result.warnings.join(" ")}` : "";
     const ocrNote = fromOcr
-      ? " Revisa nombres y valores: la lectura de imagen puede fallar."
+      ? " Revisa nombres y valores en la lista: la lectura de imagen puede fallar."
       : "";
     setFeedback(
       `Importados ${result.players.length} jugador${result.players.length === 1 ? "" : "es"}.${extra}${ocrNote}`,
     );
     setText("");
+    return true;
   }
 
   function handleImport() {
@@ -182,9 +191,14 @@ export function PasteImportPanel({
         );
         return;
       }
+      const preview = parsePastedPlayers(clip);
+      if (preview.players.length >= 2) {
+        importFromText(clip, false);
+        return;
+      }
       setText(clip);
       setFeedback(
-        "Texto pegado del portapapeles. Pulsa “Importar texto” para cargarlo.",
+        "Texto pegado del portapapeles. Si no se importó solo, pulsa “Importar texto”.",
       );
     } catch {
       setFeedback(
@@ -212,20 +226,24 @@ export function PasteImportPanel({
         );
         return;
       }
-      setText(ocrText);
       const parsed = parsePastedPlayers(ocrText);
       const confNote =
         confidence > 0 && confidence < 55
-          ? " La confianza es baja: revisa bien antes de importar."
+          ? " Confianza baja: revisa bien la lista importada."
           : "";
       if (parsed.players.length === 0) {
+        setText(ocrText);
         setFeedback(
           `Se leyó texto, pero no reconocí jugadores. Prueba una captura de la lista (con “Vender”/precios), no el cartel de compartir. O usa Compartir → pegar el texto #Biwenger.${confNote}`,
         );
-      } else {
-        setFeedback(
-          `Texto leído: ~${parsed.players.length} jugador${parsed.players.length === 1 ? "" : "es"} detectables (${Math.round(confidence)}% confianza). Revísalo y pulsa “Importar texto”.${confNote}`,
-        );
+        return;
+      }
+      // Auto-importa si hay jugadores; deja el texto solo si falla el import
+      const ok = importFromText(ocrText, true);
+      if (!ok) {
+        setText(ocrText);
+      } else if (confNote) {
+        setFeedback((prev) => `${prev ?? ""}${confNote}`);
       }
     } catch (error) {
       const message =
@@ -267,25 +285,15 @@ export function PasteImportPanel({
               <span className="font-display w-5 shrink-0 font-bold text-lime">
                 2
               </span>
-              <span>
-                <span className="font-semibold text-ink">En la app Biwenger:</span>{" "}
-                usa <strong className="text-ink">Compartir</strong> (texto con{" "}
-                <strong className="text-ink">#Biwenger</strong>) y pégalo aquí, o{" "}
-                <strong className="text-ink">Elegir captura / foto</strong> desde
-                la galería (lista con precios, no el cartel decorativo).
-                <span className="mt-1 block text-mist">
-                  En PC: Ctrl+A / Cmd+A en Plantilla o Mercado → copiar → Pegar
-                  del portapapeles.
-                </span>
-              </span>
+              <span>{guide.how}</span>
             </li>
             <li className="flex gap-2">
               <span className="font-display w-5 shrink-0 font-bold text-lime">
                 3
               </span>
               <span>
-                Revisa el texto detectado, elige sustituir o añadir, y pulsa{" "}
-                <strong className="text-ink">Importar texto</strong>.{" "}
+                Captura y pegado con varios jugadores se importan solos; revisa
+                la lista y corrige a mano si hace falta.{" "}
                 {guide.tip}
               </span>
             </li>
@@ -412,7 +420,7 @@ export function PasteImportPanel({
           <p className="text-xs leading-relaxed text-mist">
             Pegado y captura se interpretan en tu dispositivo: la imagen no se
             sube a un servidor de Pujazo. La primera captura puede tardar un poco
-            (descarga del motor OCR). Revisa siempre el resultado.
+            (ojeador OCR). Revisa siempre nombres y precios en la lista.
           </p>
         </div>
       ) : null}

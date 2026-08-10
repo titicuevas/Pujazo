@@ -30,6 +30,12 @@ function formatGeneratedAt(iso: string) {
   });
 }
 
+const SECTION_JUMPS = [
+  { id: "fichaje", label: "Fichaje" },
+  { id: "ventas", label: "Ventas" },
+  { id: "once", label: "Once" },
+] as const;
+
 export function ResultEmptyState() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
@@ -40,14 +46,17 @@ export function ResultEmptyState() {
         Aún no hay un resultado en este dispositivo. Completa el asistente o
         carga los datos de ejemplo para generar un plan en segundos.
       </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/analizar" className="cta-primary px-4 py-2.5 text-sm">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Link href="/analizar" className="cta-primary px-4 py-2.5 text-center text-sm">
           Analizar mi equipo
         </Link>
-        <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+        <Link
+          href="/historial"
+          className="cta-secondary px-4 py-2.5 text-center text-sm"
+        >
           Ver historial
         </Link>
-        <Link href="/" className="cta-secondary px-4 py-2.5 text-sm">
+        <Link href="/" className="cta-secondary px-4 py-2.5 text-center text-sm">
           Volver al inicio
         </Link>
       </div>
@@ -61,6 +70,9 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
   const bid =
     result.recommendedBid ?? result.primaryTarget?.recommendedBid;
   const maxBid = result.maxBid ?? result.primaryTarget?.maxBid;
+  const hasRanking =
+    Boolean(result.marketRanking && result.marketRanking.length > 1);
+  const showPrimaryAsideRanking = Boolean(result.primaryTarget) && !hasRanking;
 
   async function onCopy() {
     const ok = await copyText(text);
@@ -127,13 +139,14 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         </div>
       ) : null}
 
-      <div className="mb-5 flex flex-wrap gap-2 print:hidden">
-        <Button type="button" onClick={onCopy}>
+      <div className="mb-4 flex flex-col gap-2 print:hidden sm:mb-5 sm:flex-row sm:flex-wrap">
+        <Button type="button" className="w-full sm:w-auto" onClick={onCopy}>
           Copiar plan
         </Button>
         <Button
           type="button"
           variant="secondary"
+          className="w-full sm:w-auto"
           onClick={() => {
             window.print();
             setStatus(
@@ -143,19 +156,50 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         >
           Guardar PDF / Imprimir
         </Button>
-        <Button type="button" variant="secondary" onClick={onDownload}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full sm:w-auto"
+          onClick={onDownload}
+        >
           Descargar .txt
         </Button>
-        <Button type="button" variant="ghost" onClick={onShare}>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full sm:w-auto"
+          onClick={onShare}
+        >
           Compartir
         </Button>
-        <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+        <Link
+          href="/historial"
+          className="cta-secondary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+        >
           Historial
         </Link>
-        <Link href="/analizar" className="cta-secondary px-4 py-2.5 text-sm">
+        <Link
+          href="/analizar"
+          className="cta-secondary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+        >
           Editar datos
         </Link>
       </div>
+
+      <nav
+        aria-label="Ir a secciones del plan"
+        className="mb-5 flex gap-2 overflow-x-auto pb-1 print:hidden sm:flex-wrap"
+      >
+        {SECTION_JUMPS.map((jump) => (
+          <a
+            key={jump.id}
+            href={`#${jump.id}`}
+            className="shrink-0 rounded-md border border-[var(--line)] bg-pitch-950/60 px-3 py-1.5 text-xs font-semibold text-foam transition hover:border-lime/40 hover:text-ink"
+          >
+            {jump.label}
+          </a>
+        ))}
+      </nav>
 
       <Panel className="mb-4 border-lime/40 bg-lime/5">
         <h2 className="font-display text-xl font-semibold text-lime">
@@ -177,54 +221,95 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
       </Panel>
 
       <div className="space-y-4">
-        {result.primaryTarget ? (
-          <PrimaryTarget
-            result={result}
-            bid={bid}
-            maxBid={maxBid}
-          />
-        ) : null}
+        <div id="fichaje" className="scroll-mt-20 space-y-4">
+          {showPrimaryAsideRanking ? (
+            <PrimaryTarget result={result} bid={bid} maxBid={maxBid} />
+          ) : null}
 
-        {result.marketRanking && result.marketRanking.length > 1 ? (
-          <MarketRankingPanel ranking={result.marketRanking} />
-        ) : result.alternativeTarget ? (
-          <Panel>
-            <h2 className="font-display text-lg font-semibold text-lime">
-              Plan B · segunda alternativa
-            </h2>
-            <p className="mt-2 text-lg font-semibold text-ink">
-              {result.alternativeTarget.player.name}
-            </p>
-            <p className="mt-1 text-sm text-foam">
-              Puja recomendada{" "}
-              <span className="font-semibold text-ink">
-                {formatMoney(result.alternativeTarget.recommendedBid)}
-              </span>
-              {" · "}
-              máxima{" "}
-              <span className="font-semibold text-ink">
-                {formatMoney(result.alternativeTarget.maxBid)}
-              </span>
-            </p>
-          </Panel>
-        ) : null}
+          {hasRanking && result.marketRanking ? (
+            <MarketRankingPanel
+              ranking={result.marketRanking}
+              primaryReasons={result.primaryTarget?.reasons}
+            />
+          ) : result.alternativeTarget ? (
+            <Panel>
+              <h2 className="font-display text-lg font-semibold text-lime">
+                Plan B · segunda alternativa
+              </h2>
+              <p className="mt-2 text-lg font-semibold text-ink">
+                {result.alternativeTarget.player.name}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:max-w-md">
+                <div className="rounded-md border border-[var(--line)] bg-pitch-950/50 px-3 py-2">
+                  <p className="text-xs text-mist">Puja</p>
+                  <p className="font-semibold text-ink">
+                    {formatMoney(result.alternativeTarget.recommendedBid)}
+                  </p>
+                </div>
+                <div className="rounded-md border border-[var(--line)] bg-pitch-950/50 px-3 py-2">
+                  <p className="text-xs text-mist">Máxima</p>
+                  <p className="font-semibold text-amber">
+                    {formatMoney(result.alternativeTarget.maxBid)}
+                  </p>
+                </div>
+              </div>
+            </Panel>
+          ) : null}
 
-        <SalesGrid result={result} />
+          {!result.primaryTarget && !hasRanking && !result.alternativeTarget ? (
+            <Panel>
+              <h2 className="font-display text-lg font-semibold text-lime">
+                Fichaje
+              </h2>
+              <p className="mt-2 text-sm text-mist">
+                No hay candidato de mercado con los datos actuales.
+              </p>
+            </Panel>
+          ) : null}
+        </div>
 
-        {result.lineup ? <LineupPanel result={result} /> : null}
+        <div id="ventas" className="scroll-mt-20">
+          <SalesGrid result={result} />
+        </div>
+
+        {result.lineup ? (
+          <div id="once" className="scroll-mt-20">
+            <LineupPanel result={result} />
+          </div>
+        ) : (
+          <div id="once" className="scroll-mt-20">
+            <Panel>
+              <h2 className="font-display text-xl font-semibold text-lime">
+                Once recomendado
+              </h2>
+              <p className="mt-2 text-sm text-mist">
+                Añade más jugadores a la plantilla para generar una alineación.
+              </p>
+            </Panel>
+          </div>
+        )}
 
         <ReasonsGrid result={result} />
 
         <WarningsPanel result={result} />
 
-        <div className="flex flex-wrap gap-2 border-t border-[var(--line)] pt-5 print:hidden">
-          <Link href="/analizar" className="cta-primary px-4 py-2.5 text-sm">
+        <div className="flex flex-col gap-2 border-t border-[var(--line)] pt-5 print:hidden sm:flex-row sm:flex-wrap">
+          <Link
+            href="/analizar"
+            className="cta-primary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+          >
             Ajustar y volver a analizar
           </Link>
-          <Link href="/historial" className="cta-secondary px-4 py-2.5 text-sm">
+          <Link
+            href="/historial"
+            className="cta-secondary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+          >
             Ver historial
           </Link>
-          <Link href="/" className="cta-secondary px-4 py-2.5 text-sm">
+          <Link
+            href="/"
+            className="cta-secondary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+          >
             Volver al inicio
           </Link>
         </div>
@@ -259,10 +344,10 @@ function PrimaryTarget({
           · {positionLabel(target.player.position)}
         </span>
       </p>
-      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+      <dl className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-[var(--line)] bg-pitch-950/50 px-3 py-3">
           <dt className="text-xs text-mist">Puja recomendada</dt>
-          <dd className="mt-1 text-2xl font-bold text-[#04110c]">
+          <dd className="mt-1 text-xl font-bold text-[#04110c] sm:text-2xl">
             <span className="inline-block rounded bg-[var(--cta-bg)] px-2 py-0.5">
               {formatMoney(bid ?? target.recommendedBid)}
             </span>
@@ -270,7 +355,7 @@ function PrimaryTarget({
         </div>
         <div className="rounded-lg border border-[var(--line)] bg-pitch-950/50 px-3 py-3">
           <dt className="text-xs text-mist">Puja máxima</dt>
-          <dd className="mt-1 text-2xl font-bold text-amber">
+          <dd className="mt-1 text-xl font-bold text-amber sm:text-2xl">
             {formatMoney(maxBid ?? target.maxBid)}
           </dd>
         </div>
@@ -289,8 +374,10 @@ function PrimaryTarget({
 
 function MarketRankingPanel({
   ranking,
+  primaryReasons,
 }: {
   ranking: NonNullable<AnalysisResult["marketRanking"]>;
+  primaryReasons?: string[];
 }) {
   const title =
     ranking.length <= 3
@@ -301,18 +388,22 @@ function MarketRankingPanel({
     <Panel>
       <h2 className="font-display text-xl font-semibold text-lime">{title}</h2>
       <p className="mt-1 text-sm text-mist">
-        Ordenados por tu estrategia, cupo y saldo. El nº 1 es el fichaje
-        prioritario; 2 y 3 son alternativas reales si se te escapa.
+        Ordenados por tu estrategia, cupo y saldo. El nº 1 es el prioritario; 2
+        y 3 son alternativas si se te escapa.
       </p>
 
       <ol className="mt-4 space-y-3">
         {ranking.map((item, index) => (
           <li
             key={item.player.id}
-            className="rounded-lg border border-[var(--line)] bg-pitch-950/40 px-3 py-3"
+            className={`rounded-lg border px-3 py-3 ${
+              index === 0
+                ? "border-lime/45 bg-lime/10"
+                : "border-[var(--line)] bg-pitch-950/40"
+            }`}
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-lime">
                   #{index + 1}
                   {index === 0 ? " · prioritario" : null}
@@ -323,19 +414,39 @@ function MarketRankingPanel({
                     · {positionLabel(item.player.position)}
                   </span>
                 </p>
-                <p className="mt-1 text-sm text-foam">
-                  Puja{" "}
-                  <span className="font-semibold text-ink">
-                    {formatMoney(item.recommendedBid)}
-                  </span>
-                  {" · "}
-                  máx.{" "}
-                  <span className="font-semibold text-ink">
-                    {formatMoney(item.maxBid)}
-                  </span>
-                  {" · "}
-                  score {item.score}
-                </p>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-center sm:max-w-md sm:text-left">
+                  <div className="rounded-md bg-pitch-950/50 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-mist">
+                      Puja
+                    </p>
+                    <p className="text-sm font-semibold text-ink">
+                      {formatMoney(item.recommendedBid)}
+                    </p>
+                  </div>
+                  <div className="rounded-md bg-pitch-950/50 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-mist">
+                      Máx
+                    </p>
+                    <p className="text-sm font-semibold text-amber">
+                      {formatMoney(item.maxBid)}
+                    </p>
+                  </div>
+                  <div className="rounded-md bg-pitch-950/50 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-mist">
+                      Score
+                    </p>
+                    <p className="text-sm font-semibold text-foam">
+                      {item.score}
+                    </p>
+                  </div>
+                </div>
+                {index === 0 && primaryReasons && primaryReasons.length > 0 ? (
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foam">
+                    {primaryReasons.slice(0, 3).map((reason) => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
               <RiskBadge level={item.risk} />
             </div>
@@ -362,10 +473,14 @@ function SalesGrid({ result }: { result: AnalysisResult }) {
             {result.sellRecommendations.map((player) => (
               <li
                 key={player.id}
-                className="flex items-center justify-between gap-2 rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-2 rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2.5 text-sm"
               >
-                <span className="font-medium text-ink">{player.name}</span>
-                <span className="text-mist">{formatMoney(player.value)}</span>
+                <span className="min-w-0 font-medium text-ink">
+                  {player.name}
+                </span>
+                <span className="shrink-0 tabular-nums text-mist">
+                  {formatMoney(player.value)}
+                </span>
               </li>
             ))}
           </ul>
@@ -405,10 +520,14 @@ function LineupPanel({ result }: { result: AnalysisResult }) {
         {lineup.starters.map((slot) => (
           <li
             key={`${slot.position}-${slot.player.id}`}
-            className="flex items-center justify-between rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2 text-sm"
+            className="flex items-center justify-between gap-2 rounded-md border border-[var(--line)] bg-pitch-950/40 px-3 py-2.5 text-sm"
           >
-            <span className="text-mist">{positionLabel(slot.position)}</span>
-            <span className="font-medium text-ink">{slot.player.name}</span>
+            <span className="shrink-0 text-mist">
+              {positionLabel(slot.position)}
+            </span>
+            <span className="min-w-0 text-right font-medium text-ink">
+              {slot.player.name}
+            </span>
           </li>
         ))}
       </ul>

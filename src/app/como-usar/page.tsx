@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: "Pega plantilla y mercado",
-    text: "Pega texto o elige una captura/foto de la galería. Revisa lo detectado e importa. Evita capturas borrosas.",
+    text: "Pega texto o elige una captura: si detecta varios jugadores, se importan solos. Revisa nombres y precios; evita carteles borrosos o decorativos.",
   },
   {
     title: "Revisa y genera el plan",
@@ -97,8 +97,8 @@ export default function ComoUsarPage() {
             </li>
             <li>
               <strong className="text-ink">Elegir captura / foto</strong> abre la
-              galería o archivos (mejor la lista con precios, no el cartel
-              decorativo).
+              galería (mejor la lista con precios, no el cartel decorativo). Si
+              reconoce jugadores, los carga en la plantilla/mercado al momento.
             </li>
             <li>
               En PC, pegar la plantilla/mercado completo sigue siendo lo más

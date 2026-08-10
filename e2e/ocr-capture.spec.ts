@@ -26,12 +26,19 @@ test.describe("OCR captura Biwenger", () => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(plantillaShot);
 
-    // Primera vez descarga modelos OCR; puede tardar
+    // Auto-import tras OCR exitoso
     await expect(
       page.getByRole("status").filter({
-        hasText: /Texto leído|Se leyó texto|jugador/i,
+        hasText: /Importados|Se leyó texto|jugador/i,
       }),
     ).toBeVisible({ timeout: 160_000 });
+
+    // Si importó solo, la lista del wizard debe tener filas; si no, queda texto en el área
+    const imported = page.getByRole("status").filter({ hasText: /Importados/i });
+    if (await imported.isVisible().catch(() => false)) {
+      await expect(imported).toContainText(/jugador/i);
+      return;
+    }
 
     const area = page.getByLabel("Importar plantilla");
     const text = await area.inputValue();

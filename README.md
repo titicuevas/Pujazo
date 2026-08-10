@@ -152,6 +152,12 @@ src/
 - Páginas de error / 404, SEO básico (OG, robots, sitemap) y CI en GitHub
 - Guías públicas: Cómo usar, Privacidad y modelo gratis/futuro (freemium transparente)
 
+## V3.1 (UX import + resultado)
+
+- Auto-import tras OCR o pegado con varios jugadores detectados
+- Guía de importación según plataforma (no solo Biwenger)
+- Resultado móvil: botones a ancho completo, anclas Fichaje/Ventas/Once, top fichajes sin duplicar el nº 1
+
 ## Futuro (opcional)
 
 - Sync multi-dispositivo con cuenta (plan de pago)
