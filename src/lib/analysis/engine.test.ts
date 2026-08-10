@@ -105,6 +105,36 @@ describe("saldo restante y puja máxima", () => {
     expect(bids.recommended).toBeGreaterThan(0);
     expect(bids.max).toBeGreaterThanOrEqual(bids.recommended);
   });
+
+  it("baja la puja si el candidato está lesionado", () => {
+    const base = {
+      id: "1",
+      name: "Test",
+      position: "delantero" as const,
+      marketValue: 5_000_000,
+      estimatedBid: 5_500_000,
+      possibleStarter: true,
+    };
+    const fit = estimateBid({ ...base, status: "disponible" }, 10_000_000, "equilibrado");
+    const hurt = estimateBid({ ...base, status: "lesionado" }, 10_000_000, "equilibrado");
+    expect(hurt.recommended).toBeLessThan(fit.recommended);
+  });
+
+  it("no colapsa el techo de puja con saldo negativo", () => {
+    const bids = estimateBid(
+      {
+        id: "1",
+        name: "Test",
+        position: "delantero",
+        marketValue: 5_000_000,
+        status: "disponible",
+        possibleStarter: true,
+      },
+      -39_100,
+      "equilibrado",
+    );
+    expect(bids.max).toBeGreaterThan(bids.recommended);
+  });
 });
 
 describe("capitán y ariete", () => {
@@ -179,6 +209,7 @@ describe("alineación y formaciones", () => {
     );
     const starterNames = lineup?.starters.map((s) => s.player.name) ?? [];
     expect(starterNames).toContain("Sano");
+    expect(starterNames).not.toContain("Lesion");
     expect(lineup?.striker?.name).not.toBe("Lesion");
   });
 });

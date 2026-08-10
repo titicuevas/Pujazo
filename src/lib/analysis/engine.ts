@@ -40,6 +40,14 @@ function collectMissingData(input: AnalysisInput): string[] {
   if (withoutStatus.length > 0) {
     missing.push("Algunos jugadores no tienen estado informado.");
   }
+  if (
+    input.squad.length >= 8 &&
+    input.squad.every((p) => p.status === "disponible")
+  ) {
+    missing.push(
+      "Toda la plantilla figura como disponible: si hay lesionados o dudas, márcalos a mano (el pegado de Biwenger casi nunca trae el icono de estado).",
+    );
+  }
   const marketWithoutBid = input.market.filter(
     (p) => p.estimatedBid == null && p.minPrice == null,
   );
@@ -272,6 +280,25 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
   if (sellRecommendations.some((p) => p.doNotSell)) {
     warnings.push(
       "Se detectó un conflicto: un jugador marcado como «no vender» apareció en ventas.",
+    );
+  }
+  const injuredStarters =
+    lineup?.starters.filter(
+      (slot) =>
+        slot.player.status === "lesionado" ||
+        slot.player.status === "sancionado",
+    ) ?? [];
+  if (injuredStarters.length > 0) {
+    warnings.push(
+      `En el once hay ${injuredStarters.length} jugador(es) lesionado(s)/sancionado(s) porque no había alternativa en esa posición.`,
+    );
+  }
+  const injuredOnSquad = normalized.squad.filter(
+    (p) => p.status === "lesionado" || p.status === "sancionado",
+  );
+  if (injuredOnSquad.length > 0) {
+    warnings.push(
+      `${injuredOnSquad.length} lesionado(s)/sancionado(s) en plantilla: priorizados para venta y evitados en el once si hay recambio.`,
     );
   }
 

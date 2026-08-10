@@ -659,6 +659,7 @@ function StepSquad() {
       name: p.name,
       position: p.position ?? "centrocampista",
       value: p.value ?? 0,
+      status: p.status ?? "disponible",
       extraPositions: (p.extraPositions ?? []).filter(
         (pos) => pos !== (p.position ?? "centrocampista"),
       ),
@@ -919,6 +920,8 @@ function StepBudget() {
       position: p.position ?? "centrocampista",
       marketValue: p.value ?? 0,
       minPrice: p.clausePrice,
+      estimatedBid: p.estimatedBid,
+      status: p.status ?? "disponible",
     }));
     if (mode === "replace") {
       replace(mapped);

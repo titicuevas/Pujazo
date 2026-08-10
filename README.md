@@ -172,6 +172,8 @@ src/
 - Atajos PWA (Analizar / Resultado / Historial) al mantener pulsado el icono
 - CI con Playwright e2e en push/PR a develop y main
 - Avisos accionables arriba si faltan mercado/plantilla/portero; no navega si falla el guardado
+- Pujas sensibles al estado (lesionado/duda) y alineación que evita bajas si hay recambio
+- Importación: detecta “lesionado/duda/sanción” en texto y avisa si Biwenger no trae el icono
 
 ## Futuro (opcional)
 

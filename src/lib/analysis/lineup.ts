@@ -19,7 +19,8 @@ function playerFitness(player: SquadPlayer, position: Position): number {
   if (player.usualStarter) score += 18;
   score -= STATUS_PENALTY[player.status];
   if (player.status === "lesionado" || player.status === "sancionado") {
-    score -= 10;
+    // Solo titularizan si no hay alternativa usable en esa posición
+    score -= 1000;
   }
   // Prefer higher value as a weak proxy when no sports data exists
   score += Math.min(12, player.value / 2_000_000);

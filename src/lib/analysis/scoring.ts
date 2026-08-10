@@ -69,8 +69,31 @@ export function estimateBid(
   balance: number,
   strategy: Strategy,
 ): { recommended: number; max: number } {
-  const floor = player.minPrice ?? player.marketValue;
-  const hint = player.estimatedBid ?? Math.round(player.marketValue * 1.08);
+  const statusFactor: Record<MarketPlayer["status"], number> = {
+    disponible: 1,
+    duda: 0.92,
+    no_confirmado: 0.9,
+    lesionado: 0.72,
+    sancionado: 0.75,
+  };
+  const availability = statusFactor[player.status];
+
+  // Con lesionado/sancionado no empujamos la puja con cláusulas altas
+  const rawFloor = player.minPrice ?? player.marketValue;
+  const floor =
+    player.status === "lesionado" || player.status === "sancionado"
+      ? Math.min(rawFloor, player.marketValue)
+      : rawFloor;
+
+  let hint = player.estimatedBid ?? Math.round(player.marketValue * 1.08);
+  // Variación diaria Biwenger (p. ej. 30k sobre 4M) no es una puja
+  if (
+    player.estimatedBid != null &&
+    player.estimatedBid < player.marketValue * 0.15
+  ) {
+    hint = Math.round(player.marketValue * 1.08);
+  }
+
   const base = Math.max(floor, hint);
 
   const strategyFactor: Record<Strategy, number> = {
@@ -80,18 +103,34 @@ export function estimateBid(
     especulacion: 1.02,
   };
 
-  const recommended = Math.round(base * strategyFactor[strategy]);
+  let recommended = Math.round(
+    base * strategyFactor[strategy] * availability,
+  );
+  if (player.status === "lesionado" || player.status === "sancionado") {
+    recommended = Math.min(
+      recommended,
+      Math.round(player.marketValue * 0.85 * strategyFactor[strategy]),
+    );
+  }
+
   const marginReserve =
     strategy === "seguro" ? 0.25 : strategy === "equilibrado" ? 0.15 : 0.05;
-  const affordableMax = Math.max(
-    0,
-    Math.floor(balance * (1 - marginReserve)),
-  );
-  const maxFromValue = Math.round(player.marketValue * 1.35);
-  const max = Math.max(
-    recommended,
-    Math.min(affordableMax || recommended, Math.max(maxFromValue, recommended)),
-  );
+  const maxFromValue = Math.round(player.marketValue * 1.35 * availability);
+
+  let max: number;
+  if (balance <= 0) {
+    // Saldo cero/negativo: no colapsar techo a la puja recomendada
+    max = Math.max(recommended, maxFromValue);
+  } else {
+    const affordableMax = Math.floor(balance * (1 - marginReserve));
+    max = Math.max(
+      recommended,
+      Math.min(
+        Math.max(affordableMax, recommended),
+        Math.max(maxFromValue, recommended),
+      ),
+    );
+  }
 
   return {
     recommended: Math.min(recommended, max || recommended),
@@ -151,6 +190,15 @@ export function scoreMarketPlayer(
   score -= penalty;
   if (player.status !== "disponible") {
     reasons.push(`Estado: ${statusLabel(player.status)} (penaliza).`);
+  }
+  if (player.status === "lesionado" || player.status === "sancionado") {
+    score -= 20 * weights.status;
+    reasons.push("Puja contenida: no conviene sobrepagar en baja/sanción.");
+  }
+
+  if (input.strategy === "seguro" && (player.status === "lesionado" || player.status === "sancionado")) {
+    score -= 25;
+    reasons.push("Estrategia segura: este perfil no encaja mientras esté fuera.");
   }
 
   if (input.strategy === "agresivo" && player.marketValue >= 8_000_000) {

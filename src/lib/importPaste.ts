@@ -1,4 +1,4 @@
-import type { PlatformId, Position } from "@/lib/types";
+import type { PlatformId, PlayerStatus, Position } from "@/lib/types";
 import { normalizeName } from "@/lib/schemas";
 
 export type ParsedPastePlayer = {
@@ -10,6 +10,10 @@ export type ParsedPastePlayer = {
   extraPositions?: Position[];
   /** Cláusula / precio de compra si aparece en el mercado */
   clausePrice?: number;
+  /** Puja actual / oferta en curso si se puede distinguir del valor */
+  estimatedBid?: number;
+  /** Estado si el texto lo trae (Biwenger a menudo solo lo muestra como icono) */
+  status?: PlayerStatus;
 };
 
 export type PasteParseResult = {
@@ -59,6 +63,89 @@ const NOISE_LINE =
   /^(plantilla|noticias|mercado|jugadores|equipo|mi equipo|mis jugadores|squad|team|saldo|dinero|presupuesto|cash|posición|posicion|nombre|total|clasificación|clasificacion|alineación|alineacion|estrategia|guardar alineación|guardar alineacion|suplentes|añadir|anadir|buscar|buscar jugador|vender|pujar|comprar|inicio|liga|jornada|evolución del mercado|evolucion del mercado|todos los jugadores|primera división|primera division|subidas|bajadas|más estadísticas|mas estadisticas|fecha|propietario|ofertas|comunio|biwenger|laliga|fantasy|mi plantilla|mi mercado|chachos f\.?c\.?|en venta|valor de equipo|puntos)\b/i;
 
 const POSITION_ONLY = /^(PT|DF|MC|DL|POR|DEF|MED|DEL|GK)$/i;
+
+const STATUS_LINE_PATTERNS: { status: PlayerStatus; pattern: RegExp }[] = [
+  {
+    status: "lesionado",
+    pattern:
+      /^(lesionado|lesionada|lesi[oó]n(?:ado|ada)?|injured|baja m[eé]dica|cruz m[eé]dica)\b/i,
+  },
+  {
+    status: "sancionado",
+    pattern:
+      /^(sancionado|sancionada|sanci[oó]n|tarjeta roja|expulsado|expulsada|suspended)\b/i,
+  },
+  {
+    status: "duda",
+    pattern: /^(duda|doubtful|posible duda|en duda)\b/i,
+  },
+  {
+    status: "no_confirmado",
+    pattern:
+      /^(no confirmado|no convocado|apartado|descartado|fuera de la convocatoria)\b/i,
+  },
+  {
+    status: "disponible",
+    pattern: /^(disponible|apto|fit)\b/i,
+  },
+];
+
+function detectStatusToken(line: string): PlayerStatus | undefined {
+  const trimmed = line.trim();
+  for (const entry of STATUS_LINE_PATTERNS) {
+    if (entry.pattern.test(trimmed)) return entry.status;
+  }
+  // Estado embebido: "Pedri lesionado", "Vinicius · Duda"
+  const embedded = trimmed.match(
+    /\b(lesionado|lesionada|lesi[oó]n|injured|sancionado|sancionada|tarjeta roja|duda|doubtful|no confirmado|no convocado)\b/i,
+  );
+  if (!embedded) return undefined;
+  const token = embedded[1].toLowerCase();
+  if (/lesion|injured/.test(token)) return "lesionado";
+  if (/sancion|roja|expuls/.test(token)) return "sancionado";
+  if (/duda|doubt/.test(token)) return "duda";
+  if (/no confirm|no convoc/.test(token)) return "no_confirmado";
+  return undefined;
+}
+
+/**
+ * En Biwenger el 2.º importe suele ser variación diaria (pequeña) o puja actual.
+ * Solo tratamos como puja si es una fracción relevante del valor.
+ */
+function assignMoneyFields(
+  player: ParsedPastePlayer,
+  moneys: number[],
+): void {
+  if (moneys.length === 0) return;
+  player.value = moneys[0];
+  if (moneys.length === 1) return;
+
+  const value = moneys[0];
+  const second = moneys[1];
+  const third = moneys[2];
+
+  // Importe claramente superior al valor → suelo/cláusula o puja en curso
+  if (second > value) {
+    player.clausePrice = second;
+    player.estimatedBid = second;
+  } else if (second >= value * 0.5) {
+    // Puja cercana al valor (no variación diaria)
+    player.estimatedBid = second;
+  }
+
+  if (third !== undefined && third > value) {
+    player.clausePrice = third;
+    if (player.estimatedBid === undefined || third >= (player.estimatedBid ?? 0)) {
+      player.estimatedBid = third;
+    }
+  } else if (
+    third !== undefined &&
+    third >= value * 0.5 &&
+    player.estimatedBid === undefined
+  ) {
+    player.estimatedBid = third;
+  }
+}
 
 /** Clubes / ruido habitual entre nombre y valor en Comunio / LALIGA FANTASY */
 const CLUB_OR_UI_LINE =
@@ -428,6 +515,14 @@ function finalize(
       "Algunos jugadores no traían valor: revísalos y completa el precio en el formulario.",
     );
   }
+  if (
+    cleaned.length >= 3 &&
+    cleaned.every((p) => p.status === undefined)
+  ) {
+    warnings.push(
+      "No se detectó estado (lesionado/duda/sanción) en el pegado. Biwenger suele mostrarlo solo como icono: revísalo a mano en la plantilla.",
+    );
+  }
   if (meta.balance !== undefined) {
     warnings.push(
       `Saldo detectado: ${meta.balance.toLocaleString("es-ES")} € (puedes corregirlo en Presupuesto).`,
@@ -653,15 +748,27 @@ function parseSequentialFantasy(
           current.clausePrice = money;
         } else if (current.value === undefined) {
           current.value = money;
-        } else if (
-          current.clausePrice === undefined &&
-          money > current.value
-        ) {
+        } else if (money > current.value) {
           current.clausePrice = money;
+          if (current.estimatedBid === undefined) {
+            current.estimatedBid = money;
+          }
+        } else if (
+          current.estimatedBid === undefined &&
+          money >= current.value * 0.5
+        ) {
+          current.estimatedBid = money;
         }
       } else {
         skippedLines += 1;
       }
+      continue;
+    }
+
+    const statusOnly = detectStatusToken(line);
+    if (statusOnly && !looksLikePlayerName(line)) {
+      if (current) current.status = statusOnly;
+      else skippedLines += 1;
       continue;
     }
 
@@ -712,7 +819,14 @@ function parseSequentialFantasy(
 
     if (looksLikePlayerName(line)) {
       commit();
-      current = { name: cleanName(line) };
+      const status = detectStatusToken(line);
+      const name = cleanName(
+        line.replace(
+          /\b(lesionado|lesionada|sancionado|sancionada|duda|doubtful|no confirmado|no convocado)\b/gi,
+          " ",
+        ),
+      );
+      current = { name, status };
       continue;
     }
 
@@ -729,11 +843,22 @@ function parseCardChunk(chunk: string[]): ParsedPastePlayer | null {
   const moneys: number[] = [];
   const positions: Position[] = [];
   const names: string[] = [];
+  let status: PlayerStatus | undefined;
 
   for (const line of lines) {
     if (line === "/" || line === "0") continue;
     if (NOISE_LINE.test(line)) continue;
     if (/finaliza\b/i.test(line) || /^Libre\b/i.test(line)) continue;
+
+    const statusToken = detectStatusToken(line);
+    if (statusToken && !looksLikePlayerName(line)) {
+      status = statusToken;
+      continue;
+    }
+    if (statusToken && looksLikePlayerName(line)) {
+      // "Nombre lesionado" → status + name limpio más abajo
+      status = statusToken;
+    }
 
     if (POSITION_ONLY.test(line) || line === "/") {
       const pos = mapPositionToken(line);
@@ -758,7 +883,12 @@ function parseCardChunk(chunk: string[]): ParsedPastePlayer | null {
     }
 
     if (!looksLikePlayerName(line)) continue;
-    const name = cleanName(line);
+    const name = cleanName(
+      line.replace(
+        /\b(lesionado|lesionada|sancionado|sancionada|duda|doubtful|no confirmado)\b/gi,
+        " ",
+      ),
+    );
     if (name) names.push(name);
   }
 
@@ -767,17 +897,14 @@ function parseCardChunk(chunk: string[]): ParsedPastePlayer | null {
   // En Biwenger el nombre suele repetirse justo antes del valor
   const name = names[names.length - 1];
   const uniquePositions = [...new Set(positions)];
-  const value = moneys[0];
-  const clausePrice =
-    moneys.length >= 3 && moneys[2] > (value ?? 0) ? moneys[2] : undefined;
-
-  return {
+  const player: ParsedPastePlayer = {
     name,
     position: uniquePositions[0],
     extraPositions: uniquePositions.slice(1),
-    value,
-    clausePrice,
+    status,
   };
+  assignMoneyFields(player, moneys);
+  return player;
 }
 
 function parseLineByLine(
@@ -885,6 +1012,8 @@ function parseLine(line: string): ParsedPastePlayer | null {
     .replace(/\s+/g, " ")
     .trim();
 
+  const status = detectStatusToken(working);
+
   const value = extractMoney(working);
   if (value !== undefined) {
     working = working
@@ -902,11 +1031,19 @@ function parseLine(line: string): ParsedPastePlayer | null {
     working = stripPositionTokens(working);
   }
 
+  working = working
+    .replace(
+      /\b(lesionado|lesionada|sancionado|sancionada|duda|doubtful|no confirmado|no convocado|disponible|apto)\b/gi,
+      " ",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+
   const name = cleanName(working);
   if (!name || name.length < 2 || /^\d+$/.test(name)) return null;
   if (name.split(" ").length > 6) return null;
 
-  return { name, position, value };
+  return { name, position, value, status };
 }
 
 function extractMoney(line: string): number | undefined {

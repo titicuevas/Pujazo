@@ -455,4 +455,62 @@ Iván Rom
     expect(getPasteFailureHint("comunio", "market")).toMatch(/Comunio/i);
     expect(getPasteFailureHint("laliga_fantasy", "squad")).toMatch(/LALIGA/i);
   });
+
+  it("detecta estado lesionado/duda en el texto pegado", () => {
+    const result = parsePastedPlayers(`
+Plantilla
+Pedri
+MC
+lesionado
+Pedri
+8.000.000 €
+Vender
+Yamal
+DL
+duda
+Yamal
+12.000.000 €
+Vender
+`);
+    const pedri = result.players.find((p) => /pedri/i.test(p.name));
+    const yamal = result.players.find((p) => /yamal/i.test(p.name));
+    expect(pedri?.status).toBe("lesionado");
+    expect(yamal?.status).toBe("duda");
+  });
+
+  it("distingue puja actual de la variación diaria pequeña", () => {
+    const withBid = parsePastedPlayers(`
+Mercado
+De Frutos
+DL
+De Frutos
+7.000.000 €
+7.525.000 €
+Pujar
+`);
+    expect(withBid.players[0]?.estimatedBid).toBe(7_525_000);
+
+    const withDelta = parsePastedPlayers(`
+Plantilla
+Huijsen
+DF
+Huijsen
+4.290.000 €
+30.000 €
+Vender
+`);
+    expect(withDelta.players[0]?.value).toBe(4_290_000);
+    expect(withDelta.players[0]?.estimatedBid).toBeUndefined();
+  });
+
+  it("avisa si el pegado no trae estados", () => {
+    const result = parsePastedPlayers(`
+Aitor Fernández PT 200.000
+Huijsen DF 4.290.000
+Lookman DL 7.850.000
+`);
+    expect(
+      result.warnings.some((w) => /estado|lesionado|icono/i.test(w)),
+    ).toBe(true);
+  });
 });
