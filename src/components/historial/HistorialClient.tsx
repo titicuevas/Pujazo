@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageShell } from "@/components/layout/SiteChrome";
 import { Badge, Button, Panel, RiskBadge } from "@/components/ui/Primitives";
+import { downloadTextFile } from "@/lib/export";
 import {
   clearAnalysisHistory,
   deleteHistoryEntry,
+  exportLocalBackup,
+  importLocalBackup,
   loadAnalysisHistory,
   restoreHistoryEntry,
   type AnalysisHistoryEntry,
@@ -25,9 +28,11 @@ function formatWhen(iso: string) {
 
 export function HistorialClient() {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [entries, setEntries] = useState<AnalysisHistoryEntry[]>([]);
   const [ready, setReady] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [backupStatus, setBackupStatus] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     setEntries(loadAnalysisHistory());
@@ -79,6 +84,57 @@ export function HistorialClient() {
     });
   }
 
+  function onExportBackup() {
+    const backup = exportLocalBackup();
+    if (!backup) {
+      setBackupStatus("No se pudo exportar en este dispositivo.");
+      return;
+    }
+    const stamp = backup.exportedAt.slice(0, 10);
+    downloadTextFile(
+      `pujazo-backup-${stamp}.json`,
+      `${JSON.stringify(backup, null, 2)}\n`,
+    );
+    setBackupStatus(
+      `Copia guardada (${backup.history?.length ?? 0} planes en el historial).`,
+    );
+  }
+
+  async function onImportFile(file: File | undefined) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed: unknown = JSON.parse(text);
+      if (
+        !window.confirm(
+          "Esto sustituye borrador, reglas, último plan e historial de este dispositivo. ¿Continuar?",
+        )
+      ) {
+        return;
+      }
+      const result = importLocalBackup(parsed);
+      if (!result.ok) {
+        setBackupStatus(
+          result.reason === "invalid"
+            ? "El archivo no parece una copia de Pujazo válida."
+            : result.reason === "quota"
+              ? "No hay espacio suficiente para importar."
+              : "No se pudo importar en este dispositivo.",
+        );
+        return;
+      }
+      setCompareIds([]);
+      refresh();
+      setBackupStatus(
+        `Copia restaurada (${result.historyCount} planes en el historial).`,
+      );
+    } catch {
+      setBackupStatus("No se pudo leer el archivo JSON.");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
   return (
     <PageShell compactHeader>
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-8">
@@ -89,7 +145,8 @@ export function HistorialClient() {
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-foam">
               Hasta 15 análisis en este dispositivo. Marca dos para comparar
-              fichaje y puja. No se sube a ningún servidor.
+              fichaje y puja. Exporta una copia JSON para llevarla a otro móvil
+              sin cuenta.
             </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
@@ -111,6 +168,48 @@ export function HistorialClient() {
             ) : null}
           </div>
         </div>
+
+        <Panel className="mb-5">
+          <h2 className="font-display text-lg font-semibold text-lime">
+            Copia de seguridad local
+          </h2>
+          <p className="mt-1 text-sm text-mist">
+            Descarga o restaura borrador, reglas, último plan e historial. El
+            archivo no se sube a Pujazo: solo se guarda en tu dispositivo.
+          </p>
+          <div className="mt-3 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={onExportBackup}
+            >
+              Exportar JSON
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => fileRef.current?.click()}
+            >
+              Importar JSON
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              aria-label="Elegir copia de seguridad JSON"
+              onChange={(event) => {
+                void onImportFile(event.target.files?.[0]);
+              }}
+            />
+          </div>
+          {backupStatus ? (
+            <p role="status" className="mt-3 text-sm text-foam">
+              {backupStatus}
+            </p>
+          ) : null}
+        </Panel>
 
         {compared ? (
           <Panel className="mb-5 border-lime/35 bg-lime/5">
@@ -181,7 +280,7 @@ export function HistorialClient() {
             <p className="font-semibold text-ink">Aún no hay planes guardados</p>
             <p className="mt-2 text-sm text-mist">
               Cada vez que pulses “Generar plan”, se añade una entrada aquí
-              automáticamente.
+              automáticamente. También puedes importar una copia JSON.
             </p>
             <Link
               href="/analizar"
