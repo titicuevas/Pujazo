@@ -273,6 +273,7 @@ export function clearAllLocalData(): void {
   localStorage.removeItem(STORAGE_KEYS.lastAnalysis);
   localStorage.removeItem(STORAGE_KEYS.customRules);
   localStorage.removeItem(STORAGE_KEYS.analysisHistory);
+  localStorage.removeItem(STORAGE_KEYS.actionChecklist);
   clearAnalysisSnapshotCache();
 }
 

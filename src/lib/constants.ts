@@ -250,6 +250,7 @@ export const STORAGE_KEYS = {
   lastAnalysis: "pujazo.lastAnalysis.v1",
   customRules: "pujazo.customRules.v1",
   analysisHistory: "pujazo.analysisHistory.v1",
+  actionChecklist: "pujazo.actionChecklist.v1",
 } as const;
 
 export const ANALYSIS_HISTORY_LIMIT = 15;

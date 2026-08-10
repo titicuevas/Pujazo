@@ -17,6 +17,7 @@ import {
 import { formatMoney } from "@/lib/format";
 import type { AnalysisResult } from "@/lib/types";
 import { POSITION_OPTIONS } from "@/lib/constants";
+import { MatchdayChecklist } from "@/components/resultado/MatchdayChecklist";
 
 function positionLabel(id: string) {
   return POSITION_OPTIONS.find((p) => p.id === id)?.label ?? id;
@@ -31,6 +32,7 @@ function formatGeneratedAt(iso: string) {
 }
 
 const SECTION_JUMPS = [
+  { id: "acciones", label: "Acciones" },
   { id: "fichaje", label: "Fichaje" },
   { id: "ventas", label: "Ventas" },
   { id: "once", label: "Once" },
@@ -221,6 +223,8 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
       </Panel>
 
       <div className="space-y-4">
+        <MatchdayChecklist result={result} />
+
         <div id="fichaje" className="scroll-mt-20 space-y-4">
           {showPrimaryAsideRanking ? (
             <PrimaryTarget result={result} bid={bid} maxBid={maxBid} />
