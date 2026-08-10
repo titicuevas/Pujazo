@@ -165,6 +165,7 @@ src/
 - Historial → “Editar en asistente”: reabre plantilla/mercado/reglas de un plan guardado
 - Checklist “Acciones de la jornada” en el resultado (vender / pujar / alinear)
 - Acciones también en copiar/descargar plan; progreso visible en historial
+- “Siguiente jornada”: reusa plantilla/reglas, vacía mercado y abre el asistente
 
 ## Futuro (opcional)
 

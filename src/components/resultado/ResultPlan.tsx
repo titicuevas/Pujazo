@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   Badge,
@@ -18,6 +19,10 @@ import { formatMoney } from "@/lib/format";
 import type { AnalysisResult } from "@/lib/types";
 import { POSITION_OPTIONS } from "@/lib/constants";
 import { MatchdayChecklist } from "@/components/resultado/MatchdayChecklist";
+import {
+  prepareNextMatchdayDraft,
+  storageWriteMessage,
+} from "@/lib/storage";
 
 function positionLabel(id: string) {
   return POSITION_OPTIONS.find((p) => p.id === id)?.label ?? id;
@@ -67,6 +72,7 @@ export function ResultEmptyState() {
 }
 
 export function ResultPlan({ result }: { result: AnalysisResult }) {
+  const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
   const text = useMemo(() => analysisToPlainText(result), [result]);
   const bid =
@@ -98,6 +104,18 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         ? "Compartido."
         : "Comparte no disponible aquí: usa Copiar o Descargar.",
     );
+  }
+
+  function onNextMatchday() {
+    const write = prepareNextMatchdayDraft();
+    if (!write.ok) {
+      setStatus(
+        storageWriteMessage(write) ??
+          "No se pudo preparar la siguiente jornada.",
+      );
+      return;
+    }
+    router.push("/analizar?jornada=1");
   }
 
   return (
@@ -186,6 +204,14 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         >
           Editar datos
         </Link>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full sm:w-auto"
+          onClick={onNextMatchday}
+        >
+          Siguiente jornada
+        </Button>
       </div>
 
       <nav
@@ -298,9 +324,16 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
         <WarningsPanel result={result} />
 
         <div className="flex flex-col gap-2 border-t border-[var(--line)] pt-5 print:hidden sm:flex-row sm:flex-wrap">
+          <Button
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={onNextMatchday}
+          >
+            Siguiente jornada
+          </Button>
           <Link
             href="/analizar"
-            className="cta-primary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
+            className="cta-secondary w-full px-4 py-2.5 text-center text-sm sm:w-auto"
           >
             Ajustar y volver a analizar
           </Link>

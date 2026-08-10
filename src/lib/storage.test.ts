@@ -13,6 +13,7 @@ import {
   loadLastAnalysis,
   restoreHistoryEntry,
   restoreHistoryEntryToDraft,
+  prepareNextMatchdayDraft,
   saveLastAnalysis,
 } from "@/lib/storage";
 
@@ -156,6 +157,23 @@ describe("historial de análisis (storage)", () => {
     expect(loadFormDraft()).toBeNull();
     expect(restoreHistoryEntryToDraft(entryId).ok).toBe(true);
     expect(loadFormDraft()?.leagueName).toBe("CHACHOS F.C.");
+  });
+
+  it("prepara la siguiente jornada vaciando mercado y subiendo matchday", () => {
+    const input = createDemoFormValues();
+    input.matchday = 5;
+    input.market = [
+      {
+        ...input.market[0],
+        name: "Candidato viejo",
+      },
+    ];
+    saveLastAnalysis(makeResult({ summary: "Jornada 5" }), input);
+    expect(prepareNextMatchdayDraft().ok).toBe(true);
+    const draft = loadFormDraft();
+    expect(draft?.matchday).toBe(6);
+    expect(draft?.market).toEqual([]);
+    expect(draft?.squad.length).toBeGreaterThan(0);
   });
 
   it("rechaza JSON de backup inválido", () => {

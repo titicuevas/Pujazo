@@ -243,6 +243,33 @@ export function restoreHistoryEntryToDraft(id: string): StorageWriteResult {
   return { ok: true };
 }
 
+/**
+ * Prepara el asistente para la siguiente jornada:
+ * conserva plantilla/reglas/saldo, vacía el mercado y avanza matchday si es número.
+ */
+export function prepareNextMatchdayDraft(): StorageWriteResult {
+  const snapshot = loadLastAnalysis();
+  if (!snapshot) return { ok: false, reason: "unavailable" };
+
+  const nextMatchday = (() => {
+    const current = Number(snapshot.input.matchday);
+    if (!Number.isFinite(current) || current < 1) return snapshot.input.matchday;
+    return current + 1;
+  })();
+
+  const draft: AnalysisFormValues = {
+    ...snapshot.input,
+    matchday: nextMatchday,
+    market: [],
+  };
+
+  const draftWrite = saveFormDraft(draft);
+  if (!draftWrite.ok) return draftWrite;
+  const rulesWrite = saveCustomRules(draft.rules);
+  if (!rulesWrite.ok) return rulesWrite;
+  return { ok: true };
+}
+
 export function deleteHistoryEntry(id: string): void {
   void writeHistory(readHistory().filter((entry) => entry.id !== id));
 }

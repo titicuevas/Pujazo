@@ -114,20 +114,26 @@ export function AnalyzerWizard() {
   const startPaste = searchParams.get("pegar") === "1";
   const startShare = searchParams.get("share") === "1";
   const fromHistory = searchParams.get("desde") === "historial";
-  const [step, setStep] = useState(startPaste || startShare ? 2 : 0);
+  const nextMatchday = searchParams.get("jornada") === "1";
+  const [step, setStep] = useState(
+    nextMatchday ? 3 : startPaste || startShare ? 2 : 0,
+  );
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const hydratedRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (!startShare) return;
-    const pending = peekPendingShareText();
-    if (pending && guessShareImportKind(pending) === "market") {
-      setStep(3);
-    } else {
-      setStep(2);
+    if (startShare) {
+      const pending = peekPendingShareText();
+      if (pending && guessShareImportKind(pending) === "market") {
+        setStep(3);
+      } else {
+        setStep(2);
+      }
+      return;
     }
-  }, [startShare]);
+    if (nextMatchday) setStep(3);
+  }, [startShare, nextMatchday]);
 
   const methods = useForm<AnalysisFormValues>({
     resolver: zodResolver(analysisFormSchema) as never,
@@ -151,11 +157,13 @@ export function AnalyzerWizard() {
           rules: rules ?? draft.rules,
         });
         setBanner(
-          fromHistory
-            ? "Plan del historial cargado en el asistente. Ajusta y vuelve a generar."
-            : startPaste
-              ? "Borrador recuperado. Pega tu plantilla abajo o sigue editando."
-              : "Se ha recuperado el último borrador guardado en este dispositivo.",
+          nextMatchday
+            ? "Siguiente jornada: plantilla y reglas listas. Actualiza saldo y pega el mercado nuevo."
+            : fromHistory
+              ? "Plan del historial cargado en el asistente. Ajusta y vuelve a generar."
+              : startPaste
+                ? "Borrador recuperado. Pega tu plantilla abajo o sigue editando."
+                : "Se ha recuperado el último borrador guardado en este dispositivo.",
         );
       } else if (rules) {
         setValue("rules", rules);
@@ -171,7 +179,7 @@ export function AnalyzerWizard() {
       }
       setReady(true);
     });
-  }, [reset, setValue, startPaste, fromHistory]);
+  }, [reset, setValue, startPaste, fromHistory, nextMatchday]);
 
   const draftValues = useWatch({ control });
 
