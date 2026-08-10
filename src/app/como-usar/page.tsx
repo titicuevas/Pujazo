@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: "Pega plantilla y mercado",
-    text: "Pega texto o elige una captura: si detecta varios jugadores, se importan solos. Revisa nombres y precios; evita carteles borrosos o decorativos.",
+    text: "Pega texto o elige una captura: si detecta varios jugadores, se importan solos. Revisa nombres, precios y sobre todo el estado (lesionado/duda): Biwenger suele mostrarlo solo como icono y el pegado no lo trae.",
   },
   {
     title: "Revisa y genera el plan",
