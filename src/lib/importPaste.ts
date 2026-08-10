@@ -168,6 +168,7 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
   }
 
   // Share móvil Biwenger: "El mercado de hoy… #Biwenger: A, B, C"
+  // o "Mi equipo Biwenger: A, B, C"
   const mobileShare = parseBiwengerMobileShare(text);
   if (mobileShare && mobileShare.players.length > 0) {
     warnings.push(
@@ -209,14 +210,16 @@ export function parsePastedPlayers(raw: string): PasteParseResult {
 /**
  * Texto al compartir desde la app Biwenger, p. ej.:
  * "El mercado de hoy en mi liga #Biwenger: De Frutos, Pépé, Carmona, …"
+ * "Mi equipo Biwenger: Batalla, Huijsen, …"
  */
 export function parseBiwengerMobileShare(
   raw: string,
 ): { players: ParsedPastePlayer[]; skippedLines: number } | null {
   const text = raw.replace(/\r\n/g, "\n").trim();
-  const match = text.match(
-    /#\s*Biwenger\s*:\s*([^\n]+)/i,
-  );
+  const match =
+    text.match(/#\s*Biwenger\s*:\s*([^\n]+)/i) ??
+    text.match(/Mi\s+equipo\s+Biwenger\s*:\s*([^\n]+)/i) ??
+    text.match(/Plantilla\s+Biwenger\s*:\s*([^\n]+)/i);
   if (!match?.[1]) return null;
 
   const list = match[1].trim();

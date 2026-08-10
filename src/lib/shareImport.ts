@@ -50,6 +50,7 @@ export function guessShareImportKind(text: string): ShareImportKind {
 
   const squadHints =
     /\bplantilla\b/.test(t) ||
+    /\bmi equipo biwenger\b/.test(t) ||
     /\bvender\b/.test(t) ||
     /\bporteros\b/.test(t) ||
     /\bdefensas\b/.test(t) ||

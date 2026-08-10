@@ -34,6 +34,11 @@ describe("shareImport", () => {
     expect(
       guessShareImportKind("Plantilla\nPORTEROS\nOblak\nVender\n4.000.000 €"),
     ).toBe("squad");
+    expect(
+      guessShareImportKind(
+        "Mi equipo Biwenger: Batalla, Huijsen, Lookman, Koke",
+      ),
+    ).toBe("squad");
   });
 
   it("solo consume el share del kind esperado", () => {
