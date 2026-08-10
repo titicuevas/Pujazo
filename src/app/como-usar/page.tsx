@@ -81,6 +81,19 @@ export default function ComoUsarPage() {
 
         <section className="mt-10 border-t border-[var(--line)] pt-8">
           <h2 className="font-display text-xl font-semibold text-ink">
+            Extensión Chrome (PC)
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-foam">
+            En la carpeta <strong className="text-ink">extension/</strong> del
+            repo hay un complemento local: abre Biwenger web → plantilla o
+            mercado → icono Pujazo → “Copiar y abrir Pujazo”. No sube datos;
+            solo usa el portapapeles. Instrucciones en{" "}
+            <code className="text-ink">extension/README.md</code>.
+          </p>
+        </section>
+
+        <section className="mt-10 border-t border-[var(--line)] pt-8">
+          <h2 className="font-display text-xl font-semibold text-ink">
             ¿No puedes copiar desde el móvil?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-foam">

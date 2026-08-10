@@ -157,11 +157,12 @@ src/
 - Auto-import tras OCR o pegado con varios jugadores detectados
 - Guía de importación según plataforma (no solo Biwenger)
 - Resultado móvil: botones a ancho completo, anclas Fichaje/Ventas/Once, top fichajes sin duplicar el nº 1
+- Extensión Chrome (`extension/`): copia texto de Biwenger web y abre Pujazo (`?pegar=1&clip=1`)
 
 ## Futuro (opcional)
 
 - Sync multi-dispositivo con cuenta (plan de pago)
-- Conector extensión del navegador (solo con consentimiento; sin subir datos)
+- Publicar la extensión en Chrome Web Store
 - Capa de IA opcional y transparente (nunca opaca; sin filtrar datos sin aviso)
 - Pagos (p. ej. Stripe) solo para extras; el núcleo local sigue gratis
 

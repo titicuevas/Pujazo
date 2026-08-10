@@ -26,7 +26,7 @@ const laterPaid = [
   },
   {
     title: "Más comodidad",
-    text: "Atajos o conectores con consentimiento explícito (p. ej. extensión).",
+    text: "Atajos o conectores con consentimiento explícito. Ya hay MVP local de extensión Chrome en el repo (sin tienda aún).",
   },
 ];
 

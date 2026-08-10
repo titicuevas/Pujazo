@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pujazo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #06140f;
+        --panel: #0b1f17;
+        --lime: #b8f200;
+        --foam: #e8f5ef;
+        --mist: #a7c4b5;
+        --line: rgba(184, 242, 0, 0.22);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 320px;
+        font: 14px/1.45 system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--foam);
+      }
+      header {
+        padding: 14px 14px 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        color: #f4fff8;
+      }
+      p {
+        margin: 6px 0 0;
+        color: var(--mist);
+        font-size: 12px;
+      }
+      main {
+        padding: 12px 14px 14px;
+        display: grid;
+        gap: 10px;
+      }
+      label {
+        display: grid;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--mist);
+      }
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: #f4fff8;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .primary {
+        background: var(--lime);
+        color: #04110c;
+      }
+      .secondary {
+        background: transparent;
+        color: var(--foam);
+        border: 1px solid var(--line);
+      }
+      #status {
+        min-height: 1.2em;
+        font-size: 12px;
+        color: var(--mist);
+        white-space: pre-wrap;
+      }
+      #status.ok {
+        color: var(--lime);
+      }
+      #status.err {
+        color: #ff8f75;
+      }
+      .hint {
+        font-size: 11px;
+        color: var(--mist);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Pujazo</h1>
+      <p>Copia plantilla/mercado desde Biwenger (web). Sin subir datos.</p>
+    </header>
+    <main>
+      <label>
+        URL de tu Pujazo
+        <input
+          id="pujazoUrl"
+          type="url"
+          placeholder="https://tu-pujazo.vercel.app"
+          spellcheck="false"
+        />
+      </label>
+      <button type="button" class="primary" id="btnCopyOpen">
+        Copiar y abrir Pujazo
+      </button>
+      <button type="button" class="secondary" id="btnCopyOnly">
+        Solo copiar texto
+      </button>
+      <p id="status" role="status"></p>
+      <p class="hint">
+        Abre Biwenger web en la pestaña de Plantilla o Mercado, luego pulsa el
+        botón. En Pujazo se intentará pegar solo.
+      </p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

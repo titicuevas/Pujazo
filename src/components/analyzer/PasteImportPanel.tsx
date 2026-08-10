@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button, TextArea } from "@/components/ui/Primitives";
 import {
   getPasteFailureHint,
@@ -113,6 +113,7 @@ export function PasteImportPanel({
   platform = "biwenger",
   onImport,
   defaultOpen = false,
+  autoClipboardOnMount = false,
 }: {
   kind: ImportKind;
   platform?: PlatformId;
@@ -122,6 +123,8 @@ export function PasteImportPanel({
     meta: PasteMeta,
   ) => void;
   defaultOpen?: boolean;
+  /** Intenta leer el portapapeles al montar (p. ej. llegada desde la extensión). */
+  autoClipboardOnMount?: boolean;
 }) {
   const guide = GUIDE[platform]?.[kind] ?? GUIDE.otro[kind];
   const title =
@@ -137,6 +140,44 @@ export function PasteImportPanel({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
   const [ocrProgress, setOcrProgress] = useState<string | null>(null);
+  const autoClipTried = useRef(false);
+
+  useEffect(() => {
+    if (!autoClipboardOnMount || autoClipTried.current) return;
+    autoClipTried.current = true;
+    void (async () => {
+      if (!navigator.clipboard?.readText) {
+        setFeedback(
+          "Portapapeles listo desde la extensión: pulsa “Pegar del portapapeles”.",
+        );
+        return;
+      }
+      try {
+        const clip = await navigator.clipboard.readText();
+        if (!clip.trim()) {
+          setFeedback(
+            "El portapapeles está vacío. En Biwenger usa la extensión “Copiar y abrir Pujazo”.",
+          );
+          return;
+        }
+        const preview = parsePastedPlayers(clip);
+        if (preview.players.length >= 1) {
+          importFromText(clip, false);
+          return;
+        }
+        setText(clip);
+        setFeedback(
+          "Texto de la extensión cargado. Revisa y pulsa “Importar texto” si hace falta.",
+        );
+      } catch {
+        setFeedback(
+          "No se pudo leer el portapapeles automáticamente. Pulsa “Pegar del portapapeles”.",
+        );
+      }
+    })();
+    // Solo al montar con flag de extensión
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoClipboardOnMount]);
 
   function importFromText(source: string, fromOcr: boolean) {
     if (!source.trim()) {
