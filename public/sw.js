@@ -1,6 +1,6 @@
 /* Service worker mínimo: cache de shell para instalación PWA.
    No guarda plantillas ni análisis (siguen en localStorage de la página). */
-const CACHE = "pujazo-shell-v1";
+const CACHE = "pujazo-shell-v2";
 const PRECACHE = ["/", "/analizar", "/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {

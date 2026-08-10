@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
-  return {
+  const manifest = {
     name: "Pujazo",
     short_name: "Pujazo",
     description:
@@ -34,5 +34,18 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
+    // Recibir “Compartir” desde Biwenger u otras apps (texto local, sin servidor)
+    share_target: {
+      action: "/importar-share",
+      method: "POST",
+      enctype: "multipart/form-data",
+      params: {
+        title: "title",
+        text: "text",
+        url: "url",
+      },
+    },
   };
+
+  return manifest as MetadataRoute.Manifest;
 }

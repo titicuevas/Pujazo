@@ -97,11 +97,12 @@ export default function ComoUsarPage() {
             ¿No puedes copiar desde el móvil?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-foam">
-            En Biwenger la vía más fácil es{" "}
-            <strong className="text-ink">Compartir</strong> el mercado o la
-            plantilla: te genera un texto con{" "}
-            <strong className="text-ink">#Biwenger</strong> y los nombres. Pégalo
-            en Pujazo.
+            Con Pujazo <strong className="text-ink">instalada</strong> en el
+            móvil: en Biwenger pulsa{" "}
+            <strong className="text-ink">Compartir</strong> → elige{" "}
+            <strong className="text-ink">Pujazo</strong>. El texto (#Biwenger)
+            entra solo en el asistente. Si no aparece, pégalo a mano o usa
+            captura de la lista.
           </p>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-foam">
             <li>
@@ -114,8 +115,8 @@ export default function ComoUsarPage() {
               reconoce jugadores, los carga en la plantilla/mercado al momento.
             </li>
             <li>
-              En PC, pegar la plantilla/mercado completo sigue siendo lo más
-              fiable.
+              En PC, pegar la plantilla/mercado completo o la extensión Chrome
+              sigue siendo lo más fiable.
             </li>
           </ul>
         </section>

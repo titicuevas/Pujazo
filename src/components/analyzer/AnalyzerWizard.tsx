@@ -574,6 +574,7 @@ function StepLeague() {
 function StepSquad() {
   const searchParams = useSearchParams();
   const autoClipboardOnMount = searchParams.get("clip") === "1";
+  const autoShareOnMount = searchParams.get("share") === "1";
   const {
     control,
     register,
@@ -653,6 +654,7 @@ function StepSquad() {
         platform={platform}
         defaultOpen
         autoClipboardOnMount={autoClipboardOnMount}
+        autoShareOnMount={autoShareOnMount}
         onImport={importSquadPlayers}
       />
 

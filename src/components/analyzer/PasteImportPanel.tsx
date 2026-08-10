@@ -9,6 +9,7 @@ import {
   type PasteMeta,
 } from "@/lib/importPaste";
 import { recognizeImageText } from "@/lib/ocrPaste";
+import { takePendingShareText } from "@/lib/shareImport";
 import type { PlatformId } from "@/lib/types";
 
 type PasteMode = "replace" | "append";
@@ -55,7 +56,7 @@ const GUIDE: Record<
       where:
         "En Biwenger app: Equipo → Plantilla (vista lista con botón “Vender” en cada jugador).",
       how: "Usa Compartir (texto #Biwenger) y pégalo aquí, o Elegir captura / foto de la lista con precios — no el cartel decorativo. En PC: Ctrl+A / Cmd+A → copiar → Pegar del portapapeles.",
-      tip: "Lo más fiable: Compartir → pegar #Biwenger. Si usas foto, la lista con “Vender” trae precios.",
+      tip: "Lo más fiable: Compartir → elegir Pujazo (si está instalada) o pegar #Biwenger. Si usas foto, la lista con “Vender” trae precios.",
     },
     market: {
       where:
@@ -114,6 +115,7 @@ export function PasteImportPanel({
   onImport,
   defaultOpen = false,
   autoClipboardOnMount = false,
+  autoShareOnMount = false,
 }: {
   kind: ImportKind;
   platform?: PlatformId;
@@ -125,6 +127,8 @@ export function PasteImportPanel({
   defaultOpen?: boolean;
   /** Intenta leer el portapapeles al montar (p. ej. llegada desde la extensión). */
   autoClipboardOnMount?: boolean;
+  /** Consume texto pendiente del Web Share Target. */
+  autoShareOnMount?: boolean;
 }) {
   const guide = GUIDE[platform]?.[kind] ?? GUIDE.otro[kind];
   const title =
@@ -141,9 +145,32 @@ export function PasteImportPanel({
   const [ocrBusy, setOcrBusy] = useState(false);
   const [ocrProgress, setOcrProgress] = useState<string | null>(null);
   const autoClipTried = useRef(false);
+  const autoShareTried = useRef(false);
 
   useEffect(() => {
-    if (!autoClipboardOnMount || autoClipTried.current) return;
+    if (!autoShareOnMount || autoShareTried.current) return;
+    autoShareTried.current = true;
+    const shared = takePendingShareText();
+    if (!shared?.trim()) {
+      setFeedback(
+        "No llegó texto compartido. En Biwenger usa Compartir → Pujazo, o pega el texto #Biwenger.",
+      );
+      return;
+    }
+    const preview = parsePastedPlayers(shared);
+    if (preview.players.length >= 1) {
+      importFromText(shared, false);
+      return;
+    }
+    setText(shared);
+    setFeedback(
+      "Texto compartido cargado. Revisa y pulsa “Importar texto” si hace falta.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoShareOnMount]);
+
+  useEffect(() => {
+    if (!autoClipboardOnMount || autoShareOnMount || autoClipTried.current) return;
     autoClipTried.current = true;
     void (async () => {
       if (!navigator.clipboard?.readText) {
@@ -175,7 +202,6 @@ export function PasteImportPanel({
         );
       }
     })();
-    // Solo al montar con flag de extensión
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoClipboardOnMount]);
 
