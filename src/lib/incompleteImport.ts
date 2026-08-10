@@ -131,8 +131,3 @@ export function summarizeIncompleteIssues(
   }
   return parts.join(" ");
 }
-
-/** Cuántos del mercado no tienen precio usable. */
-export function countPricelessMarket(market: MarketLike[]): number {
-  return market.filter((p) => !(Number(p.marketValue) > 0)).length;
-}

@@ -28,16 +28,7 @@ export function PwaClient() {
       ("standalone" in navigator &&
         Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
 
-    if (standalone) {
-      setHidden(true);
-      return;
-    }
-
     const dismissed = sessionStorage.getItem("pujazo.pwaHintDismissed") === "1";
-    if (dismissed) {
-      setHidden(true);
-      return;
-    }
 
     const onBip = (event: Event) => {
       event.preventDefault();
@@ -47,11 +38,15 @@ export function PwaClient() {
 
     window.addEventListener("beforeinstallprompt", onBip);
 
-    // iOS / navegadores sin beforeinstallprompt: mostrar tip genérico en móvil
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (isMobile && !dismissed) {
-      setHidden(false);
-    }
+    queueMicrotask(() => {
+      if (standalone || dismissed) {
+        setHidden(true);
+        return;
+      }
+      // iOS / navegadores sin beforeinstallprompt: tip genérico en móvil
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      if (isMobile) setHidden(false);
+    });
 
     return () => window.removeEventListener("beforeinstallprompt", onBip);
   }, []);

@@ -129,15 +129,19 @@ export function AnalyzerWizard() {
 
   useLayoutEffect(() => {
     if (startShare) {
-      const pending = peekPendingShareText();
-      if (pending && guessShareImportKind(pending) === "market") {
-        setStep(3);
-      } else {
-        setStep(2);
-      }
+      queueMicrotask(() => {
+        const pending = peekPendingShareText();
+        if (pending && guessShareImportKind(pending) === "market") {
+          setStep(3);
+        } else {
+          setStep(2);
+        }
+      });
       return;
     }
-    if (nextMatchday) setStep(3);
+    if (nextMatchday) {
+      queueMicrotask(() => setStep(3));
+    }
   }, [startShare, nextMatchday]);
 
   const methods = useForm<AnalysisFormValues>({
@@ -1509,23 +1513,23 @@ function StepAnalysisType() {
 
 function ImportReviewHints({ scope }: { scope: "squad" | "market" }) {
   const { control } = useFormContext<AnalysisFormValues>();
-  const squad = useWatch({ control, name: "squad" }) ?? [];
-  const market = useWatch({ control, name: "market" }) ?? [];
+  const squadRaw = useWatch({ control, name: "squad" });
+  const marketRaw = useWatch({ control, name: "market" });
   const analysisType = useWatch({ control, name: "analysisType" });
 
-  const issues = useMemo(
-    () =>
-      incompleteImportIssues({
-        squad,
-        market,
-        analysisType,
-      }).filter((issue) =>
-        scope === "squad"
-          ? issue.scope === "squad" || issue.scope === "global"
-          : issue.scope === "market",
-      ),
-    [squad, market, analysisType, scope],
-  );
+  const issues = useMemo(() => {
+    const squad = squadRaw ?? [];
+    const market = marketRaw ?? [];
+    return incompleteImportIssues({
+      squad,
+      market,
+      analysisType,
+    }).filter((issue) =>
+      scope === "squad"
+        ? issue.scope === "squad" || issue.scope === "global"
+        : issue.scope === "market",
+    );
+  }, [squadRaw, marketRaw, analysisType, scope]);
 
   if (issues.length === 0) return null;
 

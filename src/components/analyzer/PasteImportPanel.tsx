@@ -157,10 +157,12 @@ export function PasteImportPanel({
       importFromText(shared, false);
       return;
     }
-    setText(shared);
-    setFeedback(
-      "Texto compartido cargado. Revisa y pulsa “Importar texto” si hace falta.",
-    );
+    queueMicrotask(() => {
+      setText(shared);
+      setFeedback(
+        "Texto compartido cargado. Revisa y pulsa “Importar texto” si hace falta.",
+      );
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoShareOnMount]);
 

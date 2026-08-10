@@ -210,8 +210,6 @@ describe("prueba real share Biwenger (usuario)", () => {
   });
 
   it("ejecuta los 6 tipos de análisis sin romper", () => {
-    const reports: string[] = [];
-
     for (const type of ALL_TYPES) {
       const { input, squadNames, marketNames } = buildInput(type);
       expect(squadNames).toHaveLength(14);
@@ -219,6 +217,7 @@ describe("prueba real share Biwenger (usuario)", () => {
 
       const plan = analyzeTeam(input);
       const label = analysisTypeLabel(type);
+      expect(label.length).toBeGreaterThan(2);
 
       expect(plan.summary.length).toBeGreaterThan(10);
       expect(plan.generatedAt).toBeTruthy();
@@ -251,21 +250,13 @@ describe("prueba real share Biwenger (usuario)", () => {
         expect(plan.marketRanking?.length ?? 0).toBeGreaterThan(1);
       }
 
-      reports.push(
-        [
-          `## ${label} (${type})`,
-          `Resumen: ${plan.summary}`,
-          `Fichaje: ${plan.primaryTarget?.player.name ?? "—"} · puja ${plan.primaryTarget?.recommendedBid?.toLocaleString("es-ES") ?? "—"} (máx ${plan.primaryTarget?.maxBid?.toLocaleString("es-ES") ?? "—"})`,
-          `Ventas: ${plan.sellRecommendations.map((p) => p.name).join(", ") || "—"}`,
-          `Vender antes: ${plan.mustSellBeforeBuy ? "sí" : "no"}`,
-          `Once: ${plan.lineup?.formation ?? "—"} · cap ${plan.lineup?.captain?.name ?? "—"} · ariete ${plan.lineup?.striker?.name ?? "—"}`,
-          `Riesgo: ${plan.overallRisk}`,
-          `Huecos: ${plan.missingData.slice(0, 3).join(" | ") || "—"}`,
-        ].join("\n"),
-      );
+      // Snapshot mínimo por tipo (sin console.log ruidoso en CI)
+      expect(plan.overallRisk).toMatch(/bajo|medio|alto/);
+      if (type === "completo" || type === "mercado") {
+        expect(plan.primaryTarget?.goodBuyCeiling ?? 0).toBeGreaterThanOrEqual(
+          plan.primaryTarget?.recommendedBid ?? 0,
+        );
+      }
     }
-
-    // eslint-disable-next-line no-console
-    console.log("\n===== INFORME PLANES CHACHOS =====\n" + reports.join("\n\n"));
   });
 });
