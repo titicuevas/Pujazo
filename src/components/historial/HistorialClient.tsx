@@ -55,7 +55,12 @@ export function HistorialClient() {
   }, [compareIds, entries]);
 
   function onOpen(id: string) {
-    if (!restoreHistoryEntry(id)) return;
+    if (!restoreHistoryEntry(id)) {
+      setBackupStatus(
+        "No se pudo abrir este plan en este dispositivo. Prueba exportar/importar la copia JSON.",
+      );
+      return;
+    }
     router.push("/resultado");
   }
 

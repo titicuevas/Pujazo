@@ -22,7 +22,7 @@ export type AnalysisHistoryEntry = {
 };
 
 export type StorageWriteResult =
-  | { ok: true }
+  | { ok: true; warning?: "history_quota" }
   | { ok: false; reason: "quota" | "unavailable" };
 
 function canUseStorage(): boolean {
@@ -68,7 +68,12 @@ function parseStored<T>(
 }
 
 export function storageWriteMessage(result: StorageWriteResult): string | null {
-  if (result.ok) return null;
+  if (result.ok) {
+    if (result.warning === "history_quota") {
+      return "Plan guardado, pero no hay espacio para el historial. Vacía el historial o exporta una copia JSON.";
+    }
+    return null;
+  }
   if (result.reason === "quota") {
     return "No hay espacio suficiente en este dispositivo. Borra el historial o descarga el plan y vuelve a intentar.";
   }
@@ -197,7 +202,11 @@ export function saveLastAnalysis(
   if (options?.archive !== false) {
     const archived = pushHistory(result, input);
     if (!archived.ok && archived.reason === "quota") {
-      // El plan actual sí quedó; avisar vía resultado de archive fallido
+      // El plan actual sí quedó; no bloquear el resultado
+      clearAnalysisSnapshotCache();
+      return { ok: true, warning: "history_quota" };
+    }
+    if (!archived.ok) {
       clearAnalysisSnapshotCache();
       return archived;
     }

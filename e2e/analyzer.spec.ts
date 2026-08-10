@@ -59,17 +59,16 @@ test.describe("Flujo del analizador", () => {
       page.getByText("Vender antes de fichar", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Fichaje prioritario" }),
+      page.getByRole("heading", {
+        name: /Fichaje prioritario|Top \d+ fichajes|Comparativa de candidatos/i,
+      }),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Once recomendado" }),
     ).toBeVisible();
-    await expect(page.getByText(/Capitán:/)).toBeVisible();
-    await expect(page.getByText(/Ariete:/)).toBeVisible();
+    await expect(page.getByText(/Capitán:/).first()).toBeVisible();
+    await expect(page.getByText(/Ariete:/).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "En una frase" })).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /Top \d+ fichajes/i }),
-    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Guardar PDF / Imprimir" }),
     ).toBeVisible();

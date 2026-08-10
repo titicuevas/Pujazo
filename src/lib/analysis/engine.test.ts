@@ -10,7 +10,7 @@ import {
 import { estimateBid, scoreMarketPlayer } from "@/lib/analysis/scoring";
 import { EXAMPLE_LEAGUE_RULES } from "@/lib/constants";
 import { createDemoFormValues } from "@/lib/demo";
-import { analyzeTeam } from "@/lib/analysis/engine";
+import { analyzeTeam, actionableMissingData } from "@/lib/analysis/engine";
 import {
   analysisFormSchema,
   findDuplicates,
@@ -262,5 +262,23 @@ describe("puntuación de mercado", () => {
     const input = createDemoFormValues() as AnalysisInput;
     const scored = input.market.map((p) => scoreMarketPlayer(p, input));
     expect(scored.every((s) => Number.isFinite(s.score))).toBe(true);
+  });
+});
+
+describe("datos que faltan", () => {
+  it("no mete el disclaimer de tiempo real en missingData", () => {
+    const result = analyzeTeam(createDemoFormValues() as AnalysisInput);
+    expect(
+      result.missingData.some((item) => /tiempo real/i.test(item)),
+    ).toBe(false);
+  });
+
+  it("señala mercado vacío como hueco accionable", () => {
+    const gaps = actionableMissingData([
+      "No hay jugadores en el mercado para recomendar fichajes.",
+      "No se indicó una duda concreta; el plan es genérico según el tipo de análisis.",
+    ]);
+    expect(gaps).toHaveLength(1);
+    expect(gaps[0]).toMatch(/mercado/);
   });
 });

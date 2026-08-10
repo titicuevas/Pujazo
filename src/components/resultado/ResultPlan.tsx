@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -19,6 +19,7 @@ import { formatMoney } from "@/lib/format";
 import type { AnalysisResult } from "@/lib/types";
 import { POSITION_OPTIONS } from "@/lib/constants";
 import { MatchdayChecklist } from "@/components/resultado/MatchdayChecklist";
+import { actionableMissingData } from "@/lib/analysis/engine";
 import {
   prepareNextMatchdayDraft,
   storageWriteMessage,
@@ -75,12 +76,27 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
   const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
   const text = useMemo(() => analysisToPlainText(result), [result]);
+  const gaps = useMemo(
+    () => actionableMissingData(result.missingData),
+    [result.missingData],
+  );
   const bid =
     result.recommendedBid ?? result.primaryTarget?.recommendedBid;
   const maxBid = result.maxBid ?? result.primaryTarget?.maxBid;
   const hasRanking =
     Boolean(result.marketRanking && result.marketRanking.length > 1);
   const showPrimaryAsideRanking = Boolean(result.primaryTarget) && !hasRanking;
+
+  useEffect(() => {
+    try {
+      const notice = sessionStorage.getItem("pujazo.postSaveNotice");
+      if (!notice) return;
+      sessionStorage.removeItem("pujazo.postSaveNotice");
+      queueMicrotask(() => setStatus(notice));
+    } catch {
+      // ignore
+    }
+  }, []);
 
   async function onCopy() {
     const ok = await copyText(text);
@@ -247,6 +263,29 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
           </Badge>
         </div>
       </Panel>
+
+      {gaps.length > 0 ? (
+        <Panel className="mb-4 border-amber/40 bg-amber/10">
+          <h2 className="font-display text-lg font-semibold text-amber">
+            Revisa estos datos
+          </h2>
+          <p className="mt-1 text-sm text-mist">
+            Con esto el plan es menos fiable. Puedes corregirlo y generar de
+            nuevo.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foam">
+            {gaps.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <Link
+            href="/analizar"
+            className="cta-secondary mt-4 inline-flex px-4 py-2.5 text-sm"
+          >
+            Completar datos
+          </Link>
+        </Panel>
+      ) : null}
 
       <div className="space-y-4">
         <MatchdayChecklist result={result} />
@@ -606,22 +645,27 @@ function ReasonsGrid({ result }: { result: AnalysisResult }) {
 }
 
 function WarningsPanel({ result }: { result: AnalysisResult }) {
+  const softMissing = actionableMissingData(result.missingData);
+  const otherMissing = result.missingData.filter(
+    (item) => !softMissing.includes(item),
+  );
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {result.missingData.length > 0 ? (
+      {otherMissing.length > 0 ? (
         <Panel>
           <h2 className="font-display text-lg font-semibold text-lime">
             Datos que faltan
           </h2>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foam">
-            {result.missingData.map((item) => (
+            {otherMissing.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </Panel>
       ) : null}
       <Panel
-        className={`border-amber/30 bg-amber/10 ${result.missingData.length === 0 ? "md:col-span-2" : ""}`}
+        className={`border-amber/30 bg-amber/10 ${otherMissing.length === 0 ? "md:col-span-2" : ""}`}
       >
         <h2 className="font-display text-lg font-semibold text-amber">
           Advertencias

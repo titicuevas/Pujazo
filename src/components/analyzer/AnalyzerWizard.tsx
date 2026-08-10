@@ -269,6 +269,22 @@ export function AnalyzerWizard() {
   const onSubmit = handleSubmit(
     (raw) => {
       const values = raw as AnalysisFormValues;
+      const needsMarket =
+        values.analysisType === "mercado" ||
+        values.analysisType === "comparar" ||
+        values.analysisType === "completo";
+      if (needsMarket && values.market.length === 0) {
+        const goOn = window.confirm(
+          "No hay jugadores en el mercado. El plan no podrá recomendar fichajes ni pujas. ¿Generar igual?",
+        );
+        if (!goOn) {
+          setBanner(
+            "Pega o añade el mercado, o cambia el tipo de análisis a alineación/ventas.",
+          );
+          setStep(3);
+          return;
+        }
+      }
       const maxPlayers = values.rules.maxPlayers || values.maxPlayers;
       const synced: AnalysisFormValues = {
         ...values,
@@ -283,8 +299,19 @@ export function AnalyzerWizard() {
       saveCustomRules(synced.rules);
       saveFormDraft(synced);
       if (!saved.ok) {
-        const msg = storageWriteMessage(saved);
-        if (msg) window.alert(msg);
+        setBanner(
+          storageWriteMessage(saved) ??
+            "No se pudo guardar el plan en este dispositivo.",
+        );
+        return;
+      }
+      const notice = storageWriteMessage(saved);
+      if (notice) {
+        try {
+          sessionStorage.setItem("pujazo.postSaveNotice", notice);
+        } catch {
+          // ignore
+        }
       }
       router.push("/resultado");
     },

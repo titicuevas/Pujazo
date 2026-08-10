@@ -171,6 +171,7 @@ src/
 - E2e de checklist, siguiente jornada, editar desde historial y backup JSON
 - Atajos PWA (Analizar / Resultado / Historial) al mantener pulsado el icono
 - CI con Playwright e2e en push/PR a develop y main
+- Avisos accionables arriba si faltan mercado/plantilla/portero; no navega si falla el guardado
 
 ## Futuro (opcional)
 

@@ -48,10 +48,19 @@ function collectMissingData(input: AnalysisInput): string[] {
       "Faltan pujas estimadas o precios mínimos en parte del mercado; se usa el valor de mercado.",
     );
   }
-  missing.push(
-    "No se utilizan datos deportivos en tiempo real, lesiones oficiales, rivales ni noticias.",
-  );
   return missing;
+}
+
+/** Huecos que conviene corregir antes de confiar en fichaje/once. */
+export function actionableMissingData(missingData: string[]): string[] {
+  const markers = [
+    "Plantilla incompleta",
+    "No hay jugadores en el mercado",
+    "Falta al menos un portero",
+  ];
+  return missingData.filter((item) =>
+    markers.some((marker) => item.includes(marker)),
+  );
 }
 
 function buildSummary(
