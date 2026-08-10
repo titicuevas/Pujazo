@@ -13,6 +13,7 @@ const freeNow = [
   "Pegar o capturar plantilla y mercado (auto-import si detecta jugadores)",
   "Plan en móvil con atajos a fichaje, ventas y once + PDF/compartir",
   "Historial local con comparar planes y copia JSON entre dispositivos",
+  "PWA con modo offline básico (último resultado / historial en caché)",
 ];
 
 const laterPaid = [

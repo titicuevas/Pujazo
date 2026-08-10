@@ -166,6 +166,7 @@ src/
 - Checklist “Acciones de la jornada” en el resultado (vender / pujar / alinear)
 - Acciones también en copiar/descargar plan; progreso visible en historial
 - “Siguiente jornada”: reusa plantilla/reglas, vacía mercado y abre el asistente
+- Página offline de la PWA (`/offline.html`) si no hay red
 
 ## Futuro (opcional)
 

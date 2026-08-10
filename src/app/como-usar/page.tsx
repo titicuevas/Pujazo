@@ -81,6 +81,23 @@ export default function ComoUsarPage() {
 
         <section className="mt-10 border-t border-[var(--line)] pt-8">
           <h2 className="font-display text-xl font-semibold text-ink">
+            Cada jornada
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-foam">
+            En el resultado,{" "}
+            <strong className="text-ink">Siguiente jornada</strong> reutiliza
+            tu plantilla y reglas, vacía el mercado y te lleva a pegar el
+            mercado nuevo. Usa la checklist de acciones para marcar ventas y
+            pujas hechas.
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-foam">
+            Si instalas Pujazo como app y te quedas sin red, verás una pantalla
+            offline con atajos al último resultado y al historial (todo local).
+          </p>
+        </section>
+
+        <section className="mt-10 border-t border-[var(--line)] pt-8">
+          <h2 className="font-display text-xl font-semibold text-ink">
             Extensión Chrome (PC)
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-foam">
