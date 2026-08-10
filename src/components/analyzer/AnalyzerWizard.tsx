@@ -113,6 +113,7 @@ export function AnalyzerWizard() {
   const searchParams = useSearchParams();
   const startPaste = searchParams.get("pegar") === "1";
   const startShare = searchParams.get("share") === "1";
+  const fromHistory = searchParams.get("desde") === "historial";
   const [step, setStep] = useState(startPaste || startShare ? 2 : 0);
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
@@ -150,9 +151,11 @@ export function AnalyzerWizard() {
           rules: rules ?? draft.rules,
         });
         setBanner(
-          startPaste
-            ? "Borrador recuperado. Pega tu plantilla abajo o sigue editando."
-            : "Se ha recuperado el último borrador guardado en este dispositivo.",
+          fromHistory
+            ? "Plan del historial cargado en el asistente. Ajusta y vuelve a generar."
+            : startPaste
+              ? "Borrador recuperado. Pega tu plantilla abajo o sigue editando."
+              : "Se ha recuperado el último borrador guardado en este dispositivo.",
         );
       } else if (rules) {
         setValue("rules", rules);
@@ -168,7 +171,7 @@ export function AnalyzerWizard() {
       }
       setReady(true);
     });
-  }, [reset, setValue, startPaste]);
+  }, [reset, setValue, startPaste, fromHistory]);
 
   const draftValues = useWatch({ control });
 

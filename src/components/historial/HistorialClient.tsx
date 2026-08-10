@@ -13,6 +13,8 @@ import {
   importLocalBackup,
   loadAnalysisHistory,
   restoreHistoryEntry,
+  restoreHistoryEntryToDraft,
+  storageWriteMessage,
   type AnalysisHistoryEntry,
 } from "@/lib/storage";
 import { analysisTypeLabel } from "@/lib/labels";
@@ -54,6 +56,17 @@ export function HistorialClient() {
   function onOpen(id: string) {
     if (!restoreHistoryEntry(id)) return;
     router.push("/resultado");
+  }
+
+  function onEditInWizard(id: string) {
+    const write = restoreHistoryEntryToDraft(id);
+    if (!write.ok) {
+      setBackupStatus(
+        storageWriteMessage(write) ?? "No se pudo cargar el plan en el asistente.",
+      );
+      return;
+    }
+    router.push("/analizar?desde=historial");
   }
 
   function onDelete(id: string) {
@@ -253,13 +266,23 @@ export function HistorialClient() {
                       {formatMoney(entry.result.projectedBalance)}
                     </span>
                   </p>
-                  <Button
-                    type="button"
-                    className="mt-3 w-full"
-                    onClick={() => onOpen(entry.id)}
-                  >
-                    Abrir este plan
-                  </Button>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={() => onOpen(entry.id)}
+                    >
+                      Ver resultado
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full"
+                      onClick={() => onEditInWizard(entry.id)}
+                    >
+                      Editar en asistente
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -334,7 +357,15 @@ export function HistorialClient() {
                           className="w-full sm:w-auto"
                           onClick={() => onOpen(entry.id)}
                         >
-                          Abrir
+                          Ver resultado
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="w-full sm:w-auto"
+                          onClick={() => onEditInWizard(entry.id)}
+                        >
+                          Editar en asistente
                         </Button>
                         <Button
                           type="button"

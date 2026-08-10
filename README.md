@@ -162,6 +162,7 @@ src/
 - Web Share Target: Compartir desde Biwenger → Pujazo importa el texto en local (plantilla o mercado)
 - Historial: comparar dos planes (fichaje / puja / saldo) en el dispositivo
 - Copia de seguridad local: exportar/importar JSON (borrador, reglas, historial) entre dispositivos
+- Historial → “Editar en asistente”: reabre plantilla/mercado/reglas de un plan guardado
 
 ## Futuro (opcional)
 

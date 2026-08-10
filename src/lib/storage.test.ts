@@ -12,6 +12,7 @@ import {
   loadFormDraft,
   loadLastAnalysis,
   restoreHistoryEntry,
+  restoreHistoryEntryToDraft,
   saveLastAnalysis,
 } from "@/lib/storage";
 
@@ -144,6 +145,17 @@ describe("historial de análisis (storage)", () => {
     if (imported.ok) expect(imported.historyCount).toBe(1);
     expect(loadAnalysisHistory()[0]?.result.summary).toBe("Backup plan");
     expect(loadLastAnalysis()?.result.summary).toBe("Backup plan");
+  });
+
+  it("restaura un plan del historial como borrador del asistente", () => {
+    const input = createDemoFormValues();
+    input.leagueName = "CHACHOS F.C.";
+    saveLastAnalysis(makeResult({ summary: "Para editar" }), input);
+    const entryId = loadAnalysisHistory()[0].id;
+    localStorage.removeItem("pujazo.formDraft.v1");
+    expect(loadFormDraft()).toBeNull();
+    expect(restoreHistoryEntryToDraft(entryId).ok).toBe(true);
+    expect(loadFormDraft()?.leagueName).toBe("CHACHOS F.C.");
   });
 
   it("rechaza JSON de backup inválido", () => {

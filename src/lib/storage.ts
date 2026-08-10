@@ -232,6 +232,17 @@ export function restoreHistoryEntry(id: string): boolean {
   return saveLastAnalysis(entry.result, entry.input, { archive: false }).ok;
 }
 
+/** Carga el input de un plan del historial como borrador editable del asistente. */
+export function restoreHistoryEntryToDraft(id: string): StorageWriteResult {
+  const entry = loadHistoryEntry(id);
+  if (!entry) return { ok: false, reason: "unavailable" };
+  const draftWrite = saveFormDraft(entry.input);
+  if (!draftWrite.ok) return draftWrite;
+  const rulesWrite = saveCustomRules(entry.input.rules);
+  if (!rulesWrite.ok) return rulesWrite;
+  return { ok: true };
+}
+
 export function deleteHistoryEntry(id: string): void {
   void writeHistory(readHistory().filter((entry) => entry.id !== id));
 }
