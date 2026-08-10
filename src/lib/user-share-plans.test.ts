@@ -128,7 +128,7 @@ function buildInput(analysisType: AnalysisType): {
       position: KNOWN_POSITIONS[key] ?? p.position ?? ("centrocampista" as const),
       value: KNOWN_VALUES[key] ?? p.value ?? 0,
       extraPositions: p.extraPositions ?? [],
-      status: (p.status ?? "disponible") as const,
+      status: p.status ?? ("disponible" as const),
       usualStarter: false,
       doNotSell: false,
     };
@@ -136,7 +136,7 @@ function buildInput(analysisType: AnalysisType): {
 
   const market = marketParsed.players.map((p) => {
     const key = keyName(p.name);
-    const marketValue = KNOWN_VALUES[key] ?? p.value ?? 1_000_000;
+    const marketValue = KNOWN_VALUES[key] ?? p.value ?? 0;
     return {
       id: createId("market"),
       name: p.name,
@@ -144,7 +144,7 @@ function buildInput(analysisType: AnalysisType): {
       marketValue,
       minPrice: p.clausePrice,
       estimatedBid: p.estimatedBid,
-      status: (p.status ?? "disponible") as const,
+      status: p.status ?? ("disponible" as const),
       possibleStarter: true,
     };
   });

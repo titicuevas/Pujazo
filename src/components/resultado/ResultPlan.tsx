@@ -82,6 +82,8 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
   );
   const bid =
     result.recommendedBid ?? result.primaryTarget?.recommendedBid;
+  const goodBuy =
+    result.goodBuyCeiling ?? result.primaryTarget?.goodBuyCeiling;
   const maxBid = result.maxBid ?? result.primaryTarget?.maxBid;
   const hasRanking =
     Boolean(result.marketRanking && result.marketRanking.length > 1);
@@ -292,7 +294,12 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
 
         <div id="fichaje" className="scroll-mt-20 space-y-4">
           {showPrimaryAsideRanking ? (
-            <PrimaryTarget result={result} bid={bid} maxBid={maxBid} />
+            <PrimaryTarget
+              result={result}
+              bid={bid}
+              goodBuy={goodBuy}
+              maxBid={maxBid}
+            />
           ) : null}
 
           {hasRanking && result.marketRanking ? (
@@ -397,10 +404,12 @@ export function ResultPlan({ result }: { result: AnalysisResult }) {
 function PrimaryTarget({
   result,
   bid,
+  goodBuy,
   maxBid,
 }: {
   result: AnalysisResult;
   bid?: number;
+  goodBuy?: number;
   maxBid?: number;
 }) {
   const target = result.primaryTarget;
@@ -420,7 +429,7 @@ function PrimaryTarget({
           · {positionLabel(target.player.position)}
         </span>
       </p>
-      <dl className="mt-4 grid grid-cols-2 gap-3">
+      <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-[var(--line)] bg-pitch-950/50 px-3 py-3">
           <dt className="text-xs text-mist">Puja recomendada</dt>
           <dd className="mt-1 text-xl font-bold text-[#04110c] sm:text-2xl">
@@ -429,15 +438,23 @@ function PrimaryTarget({
             </span>
           </dd>
         </div>
+        <div className="rounded-lg border border-lime/35 bg-lime/5 px-3 py-3">
+          <dt className="text-xs text-mist">Buena compra hasta</dt>
+          <dd className="mt-1 text-xl font-bold text-lime sm:text-2xl">
+            {formatMoney(goodBuy ?? target.goodBuyCeiling ?? target.maxBid)}
+          </dd>
+        </div>
         <div className="rounded-lg border border-[var(--line)] bg-pitch-950/50 px-3 py-3">
-          <dt className="text-xs text-mist">Puja máxima</dt>
+          <dt className="text-xs text-mist">Techo máximo</dt>
           <dd className="mt-1 text-xl font-bold text-amber sm:text-2xl">
             {formatMoney(maxBid ?? target.maxBid)}
           </dd>
         </div>
       </dl>
       <p className="mt-3 text-xs text-mist">
-        Puntuación local del motor: {target.score}
+        “Buena compra hasta” es el techo razonable según valor y estrategia. El
+        máximo es el límite de guerra de pujas; no lo uses si puedes evitarlo.
+        Puntuación local: {target.score}
       </p>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foam">
         {target.reasons.map((reason) => (
@@ -490,13 +507,21 @@ function MarketRankingPanel({
                     · {positionLabel(item.player.position)}
                   </span>
                 </p>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-center sm:max-w-md sm:text-left">
+                <div className="mt-2 grid grid-cols-2 gap-2 text-center sm:grid-cols-4 sm:max-w-xl sm:text-left">
                   <div className="rounded-md bg-pitch-950/50 px-2 py-1.5">
                     <p className="text-[10px] uppercase tracking-wide text-mist">
                       Puja
                     </p>
                     <p className="text-sm font-semibold text-ink">
                       {formatMoney(item.recommendedBid)}
+                    </p>
+                  </div>
+                  <div className="rounded-md bg-lime/10 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-mist">
+                      Buena
+                    </p>
+                    <p className="text-sm font-semibold text-lime">
+                      {formatMoney(item.goodBuyCeiling ?? item.maxBid)}
                     </p>
                   </div>
                   <div className="rounded-md bg-pitch-950/50 px-2 py-1.5">

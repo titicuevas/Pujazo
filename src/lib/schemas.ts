@@ -216,6 +216,7 @@ const scoredMarketPlayerSchema = z.object({
   reasons: z.array(z.string()),
   risk: riskSchema,
   recommendedBid: z.number(),
+  goodBuyCeiling: z.number().optional(),
   maxBid: z.number(),
 });
 
@@ -225,6 +226,7 @@ export const analysisResultSchema = z.object({
   alternativeTarget: scoredMarketPlayerSchema.optional(),
   marketRanking: z.array(scoredMarketPlayerSchema).optional(),
   recommendedBid: z.number().optional(),
+  goodBuyCeiling: z.number().optional(),
   maxBid: z.number().optional(),
   sellRecommendations: z.array(squadPlayerSchema),
   doNotSell: z.array(squadPlayerSchema),

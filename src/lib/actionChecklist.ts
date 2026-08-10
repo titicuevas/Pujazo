@@ -34,10 +34,12 @@ export function buildMatchdayActions(result: AnalysisResult): MatchdayAction[] {
 
   if (result.primaryTarget) {
     const bid = result.recommendedBid ?? result.primaryTarget.recommendedBid;
+    const good =
+      result.goodBuyCeiling ?? result.primaryTarget.goodBuyCeiling;
     const max = result.maxBid ?? result.primaryTarget.maxBid;
     actions.push({
       id: `bid:${result.primaryTarget.player.id}`,
-      label: `Pujar por ${result.primaryTarget.player.name}: ${formatMoney(bid)} (máx. ${formatMoney(max)})`,
+      label: `Pujar por ${result.primaryTarget.player.name}: ${formatMoney(bid)} (buena compra hasta ${formatMoney(good ?? max)}, máx. ${formatMoney(max)})`,
     });
   }
 

@@ -73,6 +73,7 @@ export function analysisToPlainText(result: AnalysisResult): string {
       `${result.primaryTarget.player.name} (${result.primaryTarget.player.position})`,
       `Puntuación local: ${result.primaryTarget.score}`,
       `Puja recomendada: ${formatMoney(result.primaryTarget.recommendedBid)}`,
+      `Buena compra hasta: ${formatMoney(result.primaryTarget.goodBuyCeiling ?? result.primaryTarget.maxBid)}`,
       `Puja máxima: ${formatMoney(result.primaryTarget.maxBid)}`,
       ...result.primaryTarget.reasons.map((r) => `- ${r}`),
     );

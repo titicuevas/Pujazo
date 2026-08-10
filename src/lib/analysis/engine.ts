@@ -56,6 +56,18 @@ function collectMissingData(input: AnalysisInput): string[] {
       "Faltan pujas estimadas o precios mínimos en parte del mercado; se usa el valor de mercado.",
     );
   }
+  const pricelessMarket = input.market.filter((p) => !(p.marketValue > 0));
+  if (pricelessMarket.length > 0) {
+    missing.push(
+      `${pricelessMarket.length} candidato(s) del mercado sin precio: las pujas no son fiables hasta completarlos.`,
+    );
+  }
+  const pricelessSquad = input.squad.filter((p) => !(p.value > 0));
+  if (pricelessSquad.length > 0) {
+    missing.push(
+      `${pricelessSquad.length} jugador(es) de plantilla sin valor: las ventas recomendadas pueden ser imprecisas.`,
+    );
+  }
   return missing;
 }
 
@@ -65,9 +77,11 @@ export function actionableMissingData(missingData: string[]): string[] {
     "Plantilla incompleta",
     "No hay jugadores en el mercado",
     "Falta al menos un portero",
+    "sin precio",
+    "sin valor",
   ];
   return missingData.filter((item) =>
-    markers.some((marker) => item.includes(marker)),
+    markers.some((marker) => item.toLowerCase().includes(marker.toLowerCase())),
   );
 }
 
@@ -121,8 +135,14 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     normalized.analysisType !== "ventas" &&
     normalized.analysisType !== "capitan";
 
-  const primary = focusMarket ? scored[0] : undefined;
-  const alternative = primary ? scored[1] : undefined;
+  // Sin precio no debe ser el fichaje prioritario si hay alternativas con valor
+  const pricedScored = scored.filter((s) => s.player.marketValue > 0);
+  const focusPool = pricedScored.length > 0 ? pricedScored : scored;
+
+  const primary = focusMarket ? focusPool[0] : undefined;
+  const alternative = primary
+    ? focusPool.find((s) => s.player.id !== primary.player.id)
+    : undefined;
   const marketRanking =
     normalized.analysisType === "comparar"
       ? scored.slice(0, 5)
@@ -248,8 +268,9 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     );
   }
   if (sellRecommendations.length > 0) {
+    const sellSum = sellRecommendations.reduce((acc, p) => acc + p.value, 0);
     alternativePlan.push(
-      `Plan B de ventas: ${sellRecommendations.map((p) => p.name).join(", ")}.`,
+      `Ventas para cubrir el fichaje (hueco ~${fundsGap.toLocaleString("es-ES")} €): ${sellRecommendations.map((p) => `${p.name} (${p.value.toLocaleString("es-ES")} €)`).join(", ")} · suma ${sellSum.toLocaleString("es-ES")} €.`,
     );
   }
   if (!primary && normalized.market.length === 0) {
@@ -308,6 +329,7 @@ export function analyzeTeam(input: AnalysisInput): AnalysisResult {
     alternativeTarget: alternative,
     marketRanking,
     recommendedBid: primary?.recommendedBid,
+    goodBuyCeiling: primary?.goodBuyCeiling,
     maxBid: primary?.maxBid,
     sellRecommendations,
     doNotSell,

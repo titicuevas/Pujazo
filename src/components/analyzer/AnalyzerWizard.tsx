@@ -48,6 +48,11 @@ import {
 } from "@/lib/shareImport";
 import { analyzeTeam } from "@/lib/analysis";
 import {
+  incompleteImportIssues,
+  shouldBlockPlanGeneration,
+  summarizeIncompleteIssues,
+} from "@/lib/incompleteImport";
+import {
   copyText,
   downloadTextFile,
   leagueRulesToPlainText,
@@ -285,6 +290,36 @@ export function AnalyzerWizard() {
           return;
         }
       }
+
+      const issues = incompleteImportIssues({
+        squad: values.squad,
+        market: values.market,
+        analysisType: values.analysisType,
+      });
+      if (shouldBlockPlanGeneration(issues, values.analysisType)) {
+        const pricedMissing = issues.filter(
+          (i) => i.code === "missing_market_value",
+        ).length;
+        setBanner(
+          pricedMissing > 0
+            ? `Faltan precios en ${pricedMissing} candidato(s) del mercado. Completa los € (el share de Biwenger solo trae nombres) antes de generar un plan de fichajes.`
+            : summarizeIncompleteIssues(issues),
+        );
+        setStep(needsMarket ? 3 : 2);
+        return;
+      }
+      const softWarns = issues.filter((i) => i.severity === "warn");
+      if (softWarns.length > 0) {
+        const goOn = window.confirm(
+          `${summarizeIncompleteIssues(softWarns)}\n\n¿Generar el plan igual? Las pujas/ventas serán menos fiables.`,
+        );
+        if (!goOn) {
+          setBanner("Revisa valores y estados en plantilla/mercado y vuelve a generar.");
+          setStep(2);
+          return;
+        }
+      }
+
       const maxPlayers = values.rules.maxPlayers || values.maxPlayers;
       const synced: AnalysisFormValues = {
         ...values,
@@ -712,6 +747,8 @@ function StepSquad() {
         onImport={importSquadPlayers}
       />
 
+      <ImportReviewHints scope="squad" />
+
       <div className="grid gap-3 sm:grid-cols-2">
         <ProgressBar
           value={squad.length}
@@ -1010,6 +1047,8 @@ function StepBudget() {
         autoShareOnMount={autoShareOnMount}
         onImport={importMarketPlayers}
       />
+
+      <ImportReviewHints scope="market" />
 
       {errors.market?.message || errors.market?.root?.message ? (
         <p role="alert" className="text-sm text-coral">
@@ -1464,6 +1503,69 @@ function StepAnalysisType() {
         <span className="text-risky">arriesgada</span> según tu estrategia y
         reglas.
       </p>
+    </div>
+  );
+}
+
+function ImportReviewHints({ scope }: { scope: "squad" | "market" }) {
+  const { control } = useFormContext<AnalysisFormValues>();
+  const squad = useWatch({ control, name: "squad" }) ?? [];
+  const market = useWatch({ control, name: "market" }) ?? [];
+  const analysisType = useWatch({ control, name: "analysisType" });
+
+  const issues = useMemo(
+    () =>
+      incompleteImportIssues({
+        squad,
+        market,
+        analysisType,
+      }).filter((issue) =>
+        scope === "squad"
+          ? issue.scope === "squad" || issue.scope === "global"
+          : issue.scope === "market",
+      ),
+    [squad, market, analysisType, scope],
+  );
+
+  if (issues.length === 0) return null;
+
+  const blocks = issues.filter((i) => i.severity === "block");
+  const warns = issues.filter((i) => i.severity === "warn");
+
+  return (
+    <div
+      role="status"
+      className={`rounded-md border px-3 py-2 text-sm ${
+        blocks.length > 0
+          ? "border-coral/40 bg-coral/10 text-foam"
+          : "border-amber/35 bg-amber/10 text-foam"
+      }`}
+    >
+      <p className="font-semibold text-ink">
+        Revisa antes de generar
+        {blocks.length > 0 ? " (bloquea el plan de fichajes)" : ""}
+      </p>
+      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-mist">
+        {blocks.slice(0, 6).map((issue) => (
+          <li key={`b-${issue.code}-${issue.playerName ?? issue.message}`}>
+            {issue.message}
+          </li>
+        ))}
+        {warns.slice(0, 4).map((issue) => (
+          <li key={`w-${issue.code}-${issue.playerName ?? issue.message}`}>
+            {issue.message}
+          </li>
+        ))}
+        {issues.length > 10 ? (
+          <li>…y {issues.length - 10} más</li>
+        ) : null}
+      </ul>
+      {scope === "market" && blocks.length > 0 ? (
+        <p className="mt-2 text-xs text-mist">
+          El “Compartir” de Biwenger solo trae nombres. Pega la lista con precios
+          o rellena los € a mano.
+        </p>
+      ) : null}
     </div>
   );
 }

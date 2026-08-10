@@ -92,6 +92,8 @@ export interface ScoredMarketPlayer {
   reasons: string[];
   risk: RiskLevel;
   recommendedBid: number;
+  /** Techo razonable de “sigue siendo buena compra”. */
+  goodBuyCeiling?: number;
   maxBid: number;
 }
 
@@ -116,6 +118,8 @@ export interface AnalysisResult {
   /** Top candidatos ordenados (modo comparar / mercado / completo) */
   marketRanking?: ScoredMarketPlayer[];
   recommendedBid?: number;
+  /** Techo de buena compra del fichaje prioritario */
+  goodBuyCeiling?: number;
   maxBid?: number;
   sellRecommendations: SquadPlayer[];
   doNotSell: SquadPlayer[];

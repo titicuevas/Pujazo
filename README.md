@@ -174,6 +174,7 @@ src/
 - Avisos accionables arriba si faltan mercado/plantilla/portero; no navega si falla el guardado
 - Pujas sensibles al estado (lesionado/duda) y alineación que evita bajas si hay recambio
 - Importación: detecta “lesionado/duda/sanción” en texto y avisa si Biwenger no trae el icono
+- Bloqueo si el mercado no tiene precios; techo “buena compra” y ventas dimensionadas al hueco de saldo
 
 ## Futuro (opcional)
 

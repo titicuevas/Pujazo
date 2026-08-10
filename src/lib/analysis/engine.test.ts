@@ -118,6 +118,24 @@ describe("saldo restante y puja máxima", () => {
     const fit = estimateBid({ ...base, status: "disponible" }, 10_000_000, "equilibrado");
     const hurt = estimateBid({ ...base, status: "lesionado" }, 10_000_000, "equilibrado");
     expect(hurt.recommended).toBeLessThan(fit.recommended);
+    expect(fit.goodBuyCeiling).toBeGreaterThanOrEqual(fit.recommended);
+  });
+
+  it("no inventa puja si el valor de mercado es 0", () => {
+    const bids = estimateBid(
+      {
+        id: "1",
+        name: "Sin precio",
+        position: "delantero",
+        marketValue: 0,
+        status: "disponible",
+        possibleStarter: true,
+      },
+      1_000_000,
+      "equilibrado",
+    );
+    expect(bids.recommended).toBe(0);
+    expect(bids.goodBuyCeiling).toBe(0);
   });
 
   it("no colapsa el techo de puja con saldo negativo", () => {

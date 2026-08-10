@@ -68,7 +68,11 @@ export function estimateBid(
   player: MarketPlayer,
   balance: number,
   strategy: Strategy,
-): { recommended: number; max: number } {
+): { recommended: number; goodBuyCeiling: number; max: number } {
+  if (!(player.marketValue > 0)) {
+    return { recommended: 0, goodBuyCeiling: 0, max: 0 };
+  }
+
   const statusFactor: Record<MarketPlayer["status"], number> = {
     disponible: 1,
     duda: 0.92,
@@ -103,6 +107,13 @@ export function estimateBid(
     especulacion: 1.02,
   };
 
+  const goodBuyFactor: Record<Strategy, number> = {
+    seguro: 1.1,
+    equilibrado: 1.18,
+    agresivo: 1.28,
+    especulacion: 1.14,
+  };
+
   let recommended = Math.round(
     base * strategyFactor[strategy] * availability,
   );
@@ -113,6 +124,15 @@ export function estimateBid(
     );
   }
 
+  const goodBuyCeiling = Math.round(
+    player.marketValue * goodBuyFactor[strategy] * availability,
+  );
+
+  // En modos no agresivos, la recomendada no debería pasar el techo de buena compra
+  if (strategy !== "agresivo") {
+    recommended = Math.min(recommended, goodBuyCeiling);
+  }
+
   const marginReserve =
     strategy === "seguro" ? 0.25 : strategy === "equilibrado" ? 0.15 : 0.05;
   const maxFromValue = Math.round(player.marketValue * 1.35 * availability);
@@ -120,20 +140,23 @@ export function estimateBid(
   let max: number;
   if (balance <= 0) {
     // Saldo cero/negativo: no colapsar techo a la puja recomendada
-    max = Math.max(recommended, maxFromValue);
+    max = Math.max(recommended, goodBuyCeiling, maxFromValue);
   } else {
     const affordableMax = Math.floor(balance * (1 - marginReserve));
     max = Math.max(
       recommended,
       Math.min(
         Math.max(affordableMax, recommended),
-        Math.max(maxFromValue, recommended),
+        Math.max(maxFromValue, goodBuyCeiling, recommended),
       ),
     );
   }
 
+  max = Math.max(max, goodBuyCeiling, recommended);
+
   return {
     recommended: Math.min(recommended, max || recommended),
+    goodBuyCeiling: Math.min(goodBuyCeiling, max || goodBuyCeiling),
     max,
   };
 }
@@ -164,6 +187,12 @@ export function scoreMarketPlayer(
   }
 
   const bids = estimateBid(player, input.balance, input.strategy);
+
+  if (!(player.marketValue > 0)) {
+    score -= 40;
+    reasons.push("Sin precio de mercado: no se puede calcular una puja fiable.");
+  }
+
   const priceRatio =
     input.balance > 0 ? bids.recommended / input.balance : 1.5;
 
@@ -231,6 +260,7 @@ export function scoreMarketPlayer(
     reasons,
     risk,
     recommendedBid: bids.recommended,
+    goodBuyCeiling: bids.goodBuyCeiling,
     maxBid: bids.max,
   };
 }
@@ -262,17 +292,18 @@ export function pickSellCandidates(
   neededValue: number,
   neededSlots: number,
 ): SquadPlayer[] {
+  if (neededValue <= 0 && neededSlots <= 0) return [];
+
   const sellable = squad
-    .reduce<
-      { player: SquadPlayer; rank: number }[]
-    >((acc, p) => {
+    .reduce<{ player: SquadPlayer; rank: number }[]>((acc, p) => {
       if (p.doNotSell) return acc;
+      // Prioriza: no titulares, mal estado, y valor suficiente para cubrir hueco
       acc.push({
         player: p,
         rank:
-          (p.usualStarter ? -20 : 10) +
+          (p.usualStarter ? -25 : 12) +
           STATUS_PENALTY[p.status] +
-          (p.value / 1_000_000) * 0.5,
+          Math.min(20, p.value / 1_500_000),
       });
       return acc;
     }, [])
@@ -282,17 +313,15 @@ export function pickSellCandidates(
   const picked: SquadPlayer[] = [];
   let value = 0;
   for (const player of sellable) {
-    if (picked.length >= Math.max(neededSlots, 1) && value >= neededValue) {
-      break;
-    }
-    if (picked.length >= Math.max(neededSlots, 3) && value >= neededValue) {
-      break;
-    }
+    const slotsOk = picked.length >= neededSlots;
+    const fundsOk = value >= neededValue;
+    if (slotsOk && fundsOk) break;
+    if (picked.length >= 4) break;
     picked.push(player);
     value += player.value;
-    if (picked.length >= 4) break;
   }
 
+  // Si hace falta cupo y no se eligió a nadie, fuerza el menos dañino
   if (neededSlots > 0 && picked.length === 0 && sellable[0]) {
     picked.push(sellable[0]);
   }
