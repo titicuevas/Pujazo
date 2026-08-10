@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   buildMatchdayActions,
+  clearMatchdayChecklist,
   loadMatchdayChecklist,
+  matchdayChecklistProgress,
   toggleMatchdayAction,
 } from "@/lib/actionChecklist";
 import type { AnalysisResult } from "@/lib/types";
@@ -85,5 +87,18 @@ describe("actionChecklist", () => {
     expect(loadMatchdayChecklist(id).has(first)).toBe(true);
     toggleMatchdayAction(id, first);
     expect(loadMatchdayChecklist(id).has(first)).toBe(false);
+  });
+
+  it("reinicia marcas y reporta progreso", () => {
+    const result = makeResult();
+    const id = result.generatedAt;
+    const first = buildMatchdayActions(result)[0].id;
+    toggleMatchdayAction(id, first);
+    expect(matchdayChecklistProgress(result)).toEqual({
+      done: 1,
+      total: buildMatchdayActions(result).length,
+    });
+    clearMatchdayChecklist(id);
+    expect(matchdayChecklistProgress(result)?.done).toBe(0);
   });
 });

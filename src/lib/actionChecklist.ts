@@ -112,3 +112,19 @@ export function toggleMatchdayAction(
   saveMatchdayChecklist(analysisId, current);
   return current;
 }
+
+export function clearMatchdayChecklist(analysisId: string): void {
+  const store = readStore();
+  delete store[analysisId];
+  writeStore(store);
+}
+
+export function matchdayChecklistProgress(
+  result: AnalysisResult,
+): { done: number; total: number } | null {
+  const actions = buildMatchdayActions(result);
+  if (actions.length === 0) return null;
+  const done = loadMatchdayChecklist(result.generatedAt);
+  const count = actions.filter((a) => done.has(a.id)).length;
+  return { done: count, total: actions.length };
+}

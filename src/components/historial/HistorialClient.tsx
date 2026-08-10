@@ -19,6 +19,7 @@ import {
 } from "@/lib/storage";
 import { analysisTypeLabel } from "@/lib/labels";
 import { formatMoney } from "@/lib/format";
+import { matchdayChecklistProgress } from "@/lib/actionChecklist";
 
 function formatWhen(iso: string) {
   return new Date(iso).toLocaleString("es-ES", {
@@ -316,6 +317,7 @@ export function HistorialClient() {
           <ul className="space-y-3">
             {entries.map((entry) => {
               const selected = compareIds.includes(entry.id);
+              const progress = matchdayChecklistProgress(entry.result);
               return (
                 <li key={entry.id}>
                   <Panel
@@ -346,6 +348,17 @@ export function HistorialClient() {
                             {analysisTypeLabel(entry.input.analysisType)}
                           </Badge>
                           <RiskBadge level={entry.result.overallRisk} />
+                          {progress ? (
+                            <Badge
+                              tone={
+                                progress.done === progress.total
+                                  ? "safe"
+                                  : "balanced"
+                              }
+                            >
+                              Acciones {progress.done}/{progress.total}
+                            </Badge>
+                          ) : null}
                         </div>
                         <p className="mt-2 line-clamp-2 text-sm text-foam">
                           {entry.result.summary}

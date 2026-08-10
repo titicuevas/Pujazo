@@ -1,4 +1,5 @@
 import type { AnalysisResult, LeagueRules } from "@/lib/types";
+import { buildMatchdayActions } from "@/lib/actionChecklist";
 import { formatMoney } from "@/lib/format";
 
 export function leagueRulesToPlainText(
@@ -127,6 +128,15 @@ export function analysisToPlainText(result: AnalysisResult): string {
     if (result.lineup.striker) {
       lines.push(`Ariete: ${result.lineup.striker.name}`);
     }
+  }
+
+  const actions = buildMatchdayActions(result);
+  if (actions.length > 0) {
+    lines.push(
+      "",
+      "ACCIONES DE LA JORNADA",
+      ...actions.map((action) => `- [ ] ${action.label}`),
+    );
   }
 
   lines.push("", "MOTIVOS", ...result.reasons.map((r) => `- ${r}`));

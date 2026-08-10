@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Panel } from "@/components/ui/Primitives";
 import {
   buildMatchdayActions,
+  clearMatchdayChecklist,
   loadMatchdayChecklist,
   toggleMatchdayAction,
 } from "@/lib/actionChecklist";
@@ -37,9 +38,23 @@ export function MatchdayChecklist({ result }: { result: AnalysisResult }) {
             dispositivo.
           </p>
         </div>
-        <p className="text-sm font-semibold text-ink">
-          {completed}/{actions.length}
-        </p>
+        <div className="flex flex-col items-end gap-1">
+          <p className="text-sm font-semibold text-ink">
+            {completed}/{actions.length}
+          </p>
+          {completed > 0 ? (
+            <button
+              type="button"
+              className="text-xs text-mist underline-offset-2 hover:text-ink hover:underline print:hidden"
+              onClick={() => {
+                clearMatchdayChecklist(analysisId);
+                setDone(new Set());
+              }}
+            >
+              Reiniciar marcas
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <ul className="mt-4 space-y-2">
