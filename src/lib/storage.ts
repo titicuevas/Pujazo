@@ -264,3 +264,64 @@ export function clearAllLocalData(): void {
   localStorage.removeItem(STORAGE_KEYS.analysisHistory);
   clearAnalysisSnapshotCache();
 }
+
+const localBackupSchema = z.object({
+  version: z.literal(1),
+  exportedAt: z.string(),
+  draft: formDraftSchema.nullable().optional(),
+  customRules: leagueRulesSchema.nullable().optional(),
+  lastAnalysis: storedAnalysisSnapshotSchema.nullable().optional(),
+  history: z.array(analysisHistoryEntrySchema).optional(),
+});
+
+export type LocalBackup = z.infer<typeof localBackupSchema>;
+
+/** Snapshot de todo lo guardado en este dispositivo (sin subir a ningún sitio). */
+export function exportLocalBackup(): LocalBackup | null {
+  if (!canUseStorage()) return null;
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    draft: loadFormDraft(),
+    customRules: loadCustomRules(),
+    lastAnalysis: loadLastAnalysis(),
+    history: loadAnalysisHistory(),
+  };
+}
+
+export type ImportBackupResult =
+  | { ok: true; historyCount: number }
+  | { ok: false; reason: "invalid" | "quota" | "unavailable" };
+
+/**
+ * Restaura un JSON exportado. Sustituye borrador, reglas, último plan e historial.
+ */
+export function importLocalBackup(raw: unknown): ImportBackupResult {
+  if (!canUseStorage()) return { ok: false, reason: "unavailable" };
+
+  const checked = localBackupSchema.safeParse(raw);
+  if (!checked.success) return { ok: false, reason: "invalid" };
+  const data = checked.data;
+
+  if (data.draft) {
+    const w = saveFormDraft(data.draft);
+    if (!w.ok) return { ok: false, reason: w.reason };
+  }
+  if (data.customRules) {
+    const w = saveCustomRules(data.customRules);
+    if (!w.ok) return { ok: false, reason: w.reason };
+  }
+  if (data.lastAnalysis) {
+    const w = saveLastAnalysis(data.lastAnalysis.result, data.lastAnalysis.input, {
+      archive: false,
+    });
+    if (!w.ok) return { ok: false, reason: w.reason };
+  }
+  if (data.history) {
+    const w = writeHistory(data.history);
+    if (!w.ok) return { ok: false, reason: w.reason };
+  }
+
+  clearAnalysisSnapshotCache();
+  return { ok: true, historyCount: data.history?.length ?? 0 };
+}

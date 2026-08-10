@@ -161,6 +161,7 @@ src/
 - PWA instalable (manifest + service worker + aviso “Instalar” en móvil)
 - Web Share Target: Compartir desde Biwenger → Pujazo importa el texto en local (plantilla o mercado)
 - Historial: comparar dos planes (fichaje / puja / saldo) en el dispositivo
+- Copia de seguridad local: exportar/importar JSON (borrador, reglas, historial) entre dispositivos
 
 ## Futuro (opcional)
 

@@ -6,6 +6,8 @@ import {
   clearAnalysisHistory,
   clearAllLocalData,
   deleteHistoryEntry,
+  exportLocalBackup,
+  importLocalBackup,
   loadAnalysisHistory,
   loadFormDraft,
   loadLastAnalysis,
@@ -124,5 +126,30 @@ describe("historial de análisis (storage)", () => {
       JSON.stringify({ result: { summary: "x" }, input: {} }),
     );
     expect(loadLastAnalysis()).toBeNull();
+  });
+
+  it("exporta e importa una copia local", () => {
+    const input = createDemoFormValues();
+    saveLastAnalysis(makeResult({ summary: "Backup plan" }), input);
+
+    const backup = exportLocalBackup();
+    expect(backup?.version).toBe(1);
+    expect(backup?.history?.length).toBe(1);
+
+    clearAllLocalData();
+    expect(loadAnalysisHistory()).toHaveLength(0);
+
+    const imported = importLocalBackup(backup);
+    expect(imported.ok).toBe(true);
+    if (imported.ok) expect(imported.historyCount).toBe(1);
+    expect(loadAnalysisHistory()[0]?.result.summary).toBe("Backup plan");
+    expect(loadLastAnalysis()?.result.summary).toBe("Backup plan");
+  });
+
+  it("rechaza JSON de backup inválido", () => {
+    expect(importLocalBackup({ version: 99 })).toEqual({
+      ok: false,
+      reason: "invalid",
+    });
   });
 });

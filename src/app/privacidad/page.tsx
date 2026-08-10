@@ -65,9 +65,14 @@ export default function PrivacidadPage() {
           </h2>
           <p>
             En el asistente puedes borrar todos los datos locales de Pujazo.
-            También puedes vaciar el historial o borrar entradas sueltas. Si
-            cambias de móvil o borras datos del navegador, esos planes
-            desaparecen: no hay copia en la nube.
+            También puedes vaciar el historial o borrar entradas sueltas. En{" "}
+            <Link href="/historial" className="font-semibold text-ink underline-offset-2 hover:underline">
+              Historial
+            </Link>{" "}
+            puedes <strong className="text-ink">exportar/importar un JSON</strong>{" "}
+            para llevar borrador y planes a otro dispositivo sin cuenta ni nube
+            de Pujazo. Si borras datos del navegador sin haber exportado, esos
+            planes desaparecen.
           </p>
         </section>
 
