@@ -23,7 +23,7 @@ const steps = [
   },
   {
     title: "Guarda o comparte",
-    text: "Copia, descarga, imprime/PDF o revisa el historial local. Al generar otro plan, el anterior queda archivado aquí.",
+    text: "Copia, descarga, imprime/PDF o revisa el historial local. En el móvil puedes instalar Pujazo en la pantalla de inicio.",
   },
 ];
 

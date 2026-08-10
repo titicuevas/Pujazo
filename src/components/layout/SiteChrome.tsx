@@ -111,6 +111,10 @@ function SiteFooter() {
           </Link>
         </nav>
         <p className="text-xs leading-relaxed text-mist">
+          Puedes instalar Pujazo en el móvil (Añadir a pantalla de inicio /
+          Instalar app). Tus datos siguen en el dispositivo.
+        </p>
+        <p className="text-xs leading-relaxed text-mist">
           Pujazo es una herramienta independiente y no está afiliada ni
           respaldada por Biwenger, Comunio, LALIGA FANTASY ni otras plataformas
           mencionadas.

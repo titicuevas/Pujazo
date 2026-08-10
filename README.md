@@ -158,6 +158,7 @@ src/
 - Guía de importación según plataforma (no solo Biwenger)
 - Resultado móvil: botones a ancho completo, anclas Fichaje/Ventas/Once, top fichajes sin duplicar el nº 1
 - Extensión Chrome (`extension/`): copia texto de Biwenger web y abre Pujazo (`?pegar=1&clip=1`)
+- PWA instalable (manifest + service worker + aviso “Instalar” en móvil)
 
 ## Futuro (opcional)
 

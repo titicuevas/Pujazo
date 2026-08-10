@@ -12,7 +12,7 @@ const freeNow = [
   "Asistente completo de fichajes, ventas, pujas y alineación",
   "Pegar o capturar plantilla y mercado (auto-import si detecta jugadores)",
   "Plan en móvil con atajos a fichaje, ventas y once + PDF/compartir",
-  "Historial local sin registro, sin tarjeta y sin enviar tu liga a un servidor",
+  "Instalable como app (PWA) en el móvil; historial local sin registro",
 ];
 
 const laterPaid = [

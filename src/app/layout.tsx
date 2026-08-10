@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
+import { PwaClient } from "@/components/pwa/PwaClient";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -30,6 +31,18 @@ export const metadata: Metadata = {
   description:
     "Introduce tu equipo, tu saldo, tu mercado y las reglas de tu liga. Pujazo te devuelve un plan claro de fichajes, ventas, pujas y alineación.",
   applicationName: "Pujazo",
+  appleWebApp: {
+    capable: true,
+    title: "Pujazo",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   alternates: {
     canonical: "/",
   },
@@ -73,6 +86,7 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         {children}
+        <PwaClient />
       </body>
     </html>
   );
