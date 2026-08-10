@@ -90,9 +90,11 @@ test.describe("Flujo del analizador", () => {
     await expect(
       page.getByRole("heading", { name: "Historial de planes" }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Abrir" }).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Ver resultado" }).first(),
+    ).toBeVisible();
 
-    await page.getByRole("button", { name: "Abrir" }).first().click();
+    await page.getByRole("button", { name: "Ver resultado" }).first().click();
     await page.waitForURL("**/resultado");
     await expect(
       page.getByRole("heading", { name: "Tu plan de acción" }),
