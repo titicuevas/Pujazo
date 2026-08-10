@@ -20,6 +20,7 @@ function makeResult(overrides?: Partial<AnalysisResult>): AnalysisResult {
         status: "disponible",
         usualStarter: false,
         doNotSell: false,
+        extraPositions: [],
       },
     ],
     doNotSell: [],
@@ -30,6 +31,7 @@ function makeResult(overrides?: Partial<AnalysisResult>): AnalysisResult {
         position: "delantero",
         marketValue: 5_000_000,
         status: "disponible",
+        possibleStarter: true,
       },
       score: 80,
       risk: "medio",
@@ -50,6 +52,7 @@ function makeResult(overrides?: Partial<AnalysisResult>): AnalysisResult {
     lineup: {
       formation: "4-3-3",
       starters: [],
+      bench: [],
       captain: {
         id: "c1",
         name: "Capitan",
@@ -58,7 +61,9 @@ function makeResult(overrides?: Partial<AnalysisResult>): AnalysisResult {
         status: "disponible",
         usualStarter: true,
         doNotSell: true,
+        extraPositions: [],
       },
+      reasons: [],
     },
     ...overrides,
   };

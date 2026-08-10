@@ -81,4 +81,30 @@ test.describe("Checklist, jornada e historial", () => {
     expect(download.suggestedFilename()).toMatch(/pujazo-backup-.*\.json/);
     await expect(page.getByRole("status").filter({ hasText: /Copia guardada/i })).toBeVisible();
   });
+
+  test("comparar dos planes en historial", async ({ page }) => {
+    await generateDemoPlan(page);
+    await page.getByRole("link", { name: "Editar datos" }).first().click();
+    await page.waitForURL("**/analizar");
+    await page
+      .getByRole("navigation", { name: "Progreso del formulario" })
+      .getByRole("button", { name: /6/ })
+      .click();
+    await page.getByRole("button", { name: "Generar plan" }).click();
+    await page.waitForURL("**/resultado");
+
+    await page.getByRole("link", { name: "Historial" }).first().click();
+    await page.waitForURL("**/historial");
+
+    const compareButtons = page.getByRole("button", { name: "Comparar" });
+    await expect(compareButtons).toHaveCount(2);
+    await compareButtons.nth(0).click();
+    await page.getByRole("button", { name: "Comparar" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Comparativa rápida" }),
+    ).toBeVisible();
+    await expect(page.getByText(/^Fichaje:/).first()).toBeVisible();
+    await expect(page.getByText(/^Puja:/).first()).toBeVisible();
+  });
 });

@@ -14,6 +14,29 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "es-ES",
     orientation: "portrait-primary",
     categories: ["sports", "productivity"],
+    shortcuts: [
+      {
+        name: "Analizar equipo",
+        short_name: "Analizar",
+        description: "Abrir el asistente para pegar plantilla o mercado",
+        url: "/analizar?pegar=1",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Último resultado",
+        short_name: "Resultado",
+        description: "Ver el último plan guardado en este dispositivo",
+        url: "/resultado",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Historial de planes",
+        short_name: "Historial",
+        description: "Comparar planes y exportar copia local",
+        url: "/historial",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",

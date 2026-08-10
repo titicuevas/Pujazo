@@ -93,6 +93,8 @@ export default function ComoUsarPage() {
           <p className="mt-2 text-sm leading-relaxed text-foam">
             Si instalas Pujazo como app y te quedas sin red, verás una pantalla
             offline con atajos al último resultado y al historial (todo local).
+            Si la instalas, el icono de la app ofrece atajos a Analizar, Resultado
+            e Historial (Android / escritorio).
           </p>
         </section>
 

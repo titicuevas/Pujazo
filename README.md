@@ -169,6 +169,8 @@ src/
 - Página offline de la PWA (`/offline.html`) si no hay red
 - Iconos PWA/extensión con la marca (P + flecha) y variante maskable
 - E2e de checklist, siguiente jornada, editar desde historial y backup JSON
+- Atajos PWA (Analizar / Resultado / Historial) al mantener pulsado el icono
+- CI con Playwright e2e en push/PR a develop y main
 
 ## Futuro (opcional)
 
